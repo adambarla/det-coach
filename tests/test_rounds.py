@@ -9,9 +9,10 @@ from detcoach.tasks import TASK_TYPES
 
 def test_shipped_rounds_are_valid():
     rounds = list_rounds(REPO / "rounds")
-    assert len(rounds) >= 2
-    for r in rounds:
-        assert {s.type for s in r.steps} == set(TASK_TYPES)
+    assert len(rounds) >= 3
+    # Together the shipped rounds use every task type, and at least one is a full test.
+    assert {s.type for r in rounds for s in r.steps} == set(TASK_TYPES)
+    assert any({s.type for s in r.steps} == set(TASK_TYPES) for r in rounds)
 
 
 def test_steps_take_times_from_task_types(root):

@@ -24,7 +24,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from . import feedback, speech
+from . import feedback, score, speech
 from .attempts import Attempts
 from .rounds import FILE_NAME, Round, RoundError, list_rounds, load_round
 
@@ -48,7 +48,11 @@ class App:
     def attempt_detail(self, attempt_id: str) -> dict:
         base = self.attempts.path(attempt_id)
         manifest = self.attempts.manifest(attempt_id)
-        answers = {p.stem: p.read_text(encoding="utf-8") for p in (base / "answers").glob("*.txt")}
+        answers = {
+            p.stem: p.read_text(encoding="utf-8")
+            for p in (base / "answers").glob("*")
+            if p.suffix in (".txt", ".json")
+        }
         recordings = {
             p.stem: f"/attempts/{attempt_id}/recordings/{p.name}"
             for p in (base / "recordings").glob("*")
@@ -56,6 +60,7 @@ class App:
         tfile = base / "transcripts.json"
         transcripts = json.loads(tfile.read_text()) if tfile.is_file() else {}
         rnd = self.round(manifest["round"])
+        scores = score.score_attempt(rnd, base, manifest)
         status = self.attempts.status(attempt_id)
         fb = feedback.load_feedback(base)
         if fb is not None and feedback.check(fb, rnd, manifest):
@@ -76,6 +81,8 @@ class App:
                 for k, v in transcripts.items()
             },
             "feedback": fb,
+            "scores": scores,
+            "skills": score.summary(scores, {s.id: s for s in rnd.steps}),
         }
 
 

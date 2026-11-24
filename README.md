@@ -1,7 +1,7 @@
 # det-coach
 
-Practice the writing and speaking tasks of the Duolingo English Test with the official
-timings, then get feedback on every answer from a coding agent such as Claude Code.
+Practice every task of the Duolingo English Test with the official timings, then get
+feedback on your writing and speaking from a coding agent such as Claude Code.
 
 The official practice test gives you a score, but it does not tell you what to fix.
 det-coach records your answers on your own computer. Your agent then grades each answer
@@ -12,10 +12,13 @@ corrections of your own sentences and a stronger model answer.
 
 ## Features
 
-- **All eight production tasks** in the order and with the times of the real test:
-  Write About the Photo, Interactive Writing, Summarize the Conversation, Writing
-  Sample, Speak About the Photo, Read, Then Speak, Interactive Speaking and Speaking
-  Sample.
+- **All the task types of the 2026 test** with the official times. Reading: Read and
+  Select, Fill in the Blanks, Read and Complete and Interactive Reading. Listening:
+  Listen and Type and Interactive Listening. Writing and speaking: the photo tasks,
+  Interactive Writing, Summarize the Conversation, Read, Then Speak, Interactive
+  Speaking and the two samples.
+- **Instant scores for reading and listening.** det-coach marks each answer and shows
+  the right one, with partial credit where the real test gives it.
 - **A test-like experience.** One timed screen at a time, no pause button, spell check
   off, and spoken questions that play once.
 - **Local and private.** The app, the recordings and the transcription run on your
@@ -23,7 +26,7 @@ corrections of your own sentences and a stronger model answer.
 - **Feedback in the app.** Score bands for each criterion, fixes that quote your own
   words, model answers, and your recordings with pauses marked in the transcript.
 - **Open content.** Rounds are JSON files with original prompts and freely licensed
-  photos. Your agent can write new rounds for you.
+  photos. `round-03` is a full test. Your agent can write new rounds for you.
 
 ## Requirements
 
@@ -89,7 +92,11 @@ You can also grade by hand: run `det-coach packet` and read `packet.md`.
 
 ### What the feedback can and cannot do
 
-- The score bands are estimates. The real test uses its own scoring models. On 21
+- The reading and listening points are a share of right answers, not a DET score.
+  The real test adapts these questions to you, so the same share can mean different
+  scores.
+- The writing and speaking bands are estimates. The real test uses its own scoring
+  models. On 21
   officially scored answers, the estimates are within about 10 points of the official
   score. [docs/calibration.md](docs/calibration.md) shows the test.
 - Grading runs in a separate subagent that sees only your answers, so the grade does

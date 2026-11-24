@@ -72,6 +72,9 @@ class Attempts:
         base = self.path(attempt_id)
         if content_type == "text/plain":
             out = base / "answers" / f"{step_id}.txt"
+        elif content_type == "application/json":  # reading and listening answers
+            json.loads(data)
+            out = base / "answers" / f"{step_id}.json"
         elif content_type in AUDIO_TYPES:
             out = base / "recordings" / f"{step_id}{AUDIO_TYPES[content_type]}"
         else:

@@ -1,8 +1,9 @@
 # Agent guide
 
-det-coach is a local practice app for the writing and speaking tasks of the Duolingo
-English Test. The user takes a timed round in the browser. A coding agent then grades
-the answers and writes feedback that the app shows.
+det-coach is a local practice app for the Duolingo English Test. The user takes a timed
+round in the browser. det-coach scores the reading and listening tasks itself, because
+they have right answers. A coding agent grades the writing and speaking answers and
+writes feedback that the app shows.
 
 ## What users ask for
 
@@ -30,7 +31,10 @@ For code changes, run `uv run pytest`, `uv run ruff check .` and `uv run ruff fo
 ```
 src/detcoach/
   tasks.py       task types and official times (the only place for times)
+  model.py       Step and Line, the screens of a round
   rounds.py      load and validate rounds/<id>/round.json, expand tasks into steps
+  content.py     reading and listening tasks: checks and expansion into steps
+  score.py       scores of the reading and listening answers
   attempts.py    attempts/<id>/: answers, recordings, manifest
   server.py      local HTTP server and JSON API (stdlib only)
   speech.py      spoken questions with macOS `say`
@@ -40,6 +44,7 @@ src/detcoach/
   static/        the app: index.html, app.css, app.js (no build step)
 rounds/          practice content
 rubric/          the scoring rubric for graders
+tools/           calibration of the grader against official scores
 attempts/        the user's answers (git ignores it)
 ```
 

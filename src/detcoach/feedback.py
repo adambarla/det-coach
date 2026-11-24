@@ -10,9 +10,9 @@ import json
 from itertools import pairwise
 from pathlib import Path
 
-from . import metrics
+from . import metrics, score
 from .rounds import Round, Step
-from .tasks import TASK_TYPES
+from .tasks import GRADED, TASK_TYPES
 
 WRITING_CRITERIA = ("content", "coherence", "grammar", "lexis")
 SPEAKING_CRITERIA = (*WRITING_CRITERIA, "fluency", "pronunciation")
@@ -45,11 +45,12 @@ def _prompt_block(step: Step, rnd: Round) -> list[str]:
     if step.prompt:
         lines += [f"Prompt: {step.prompt}"]
     lines += [f"- {b}" for b in step.bullets]
-    if step.listen:
+    if step.listen and step.skill in GRADED:
         if step.type == "interactive_speaking":
             lines += [f"Question (heard once, not shown): {step.listen[0].text}"]
         else:
-            lines += ["Conversation (heard once, not shown):"]
+            heard = "earlier, in Listen and Respond" if step.after else "once, not shown"
+            lines += [f"Conversation (heard {heard}):"]
             lines += [f"> **{x.voice}:** {x.text}" for x in step.listen]
     return lines
 
@@ -64,12 +65,30 @@ def build_packet(rnd: Round, attempt_dir: Path, manifest: dict, transcripts: dic
         f"{manifest['id']}`.",
         "",
     ]
+    scores = score.score_attempt(rnd, attempt_dir, manifest)
+    skills = score.summary(scores, {s.id: s for s in rnd.steps})
+    if skills:
+        out += [
+            "## Reading and listening",
+            "",
+            "det-coach scored these tasks itself. Do not grade them. You may mention them",
+            "in the summary. The real test adapts these questions, so a share of points does",
+            "not convert to a score.",
+            "",
+        ]
+        out += [
+            f"- {k.title()}: {v['credit']:g} of {v['points']} points ({v['share']:.0%})"
+            for k, v in skills.items()
+        ]
+        out += [""]
     for step in rnd.steps:
+        if step.skill not in GRADED:
+            continue
         saved = manifest["steps"].get(step.id)
         spec = TASK_TYPES[step.type]
         timing = f"prep {step.prep} s, answer {step.answer} s"
         title = f"## `{step.id}` · {step.name}" + (f" · {step.part}" if step.part else "")
-        out += [title, "", f"{spec.skill.title()} task, {timing}. Weight: {spec.weight}.", ""]
+        out += [title, "", f"{step.skill.title()} task, {timing}. Weight: {spec.weight}.", ""]
         out += _prompt_block(step, rnd) + [""]
         if not saved and (attempt_dir / "answers" / f"{step.id}.txt").is_file():
             out += [
@@ -81,7 +100,7 @@ def build_packet(rnd: Round, attempt_dir: Path, manifest: dict, transcripts: dic
         if not saved:
             out += ["_Not answered in this attempt. Skip it._", ""]
             continue
-        if spec.skill == "writing":
+        if step.skill == "writing":
             text = (attempt_dir / saved["file"]).read_text(encoding="utf-8")
             out += ["Answer:", "", "```text", text.strip() or "(empty)", "```", ""]
             out += [f"Measures: {_fmt_metrics(metrics.writing(text))}", ""]
@@ -165,12 +184,15 @@ def check(feedback, rnd: Round, manifest: dict) -> list[str]:
     if not isinstance(given, dict):
         return [*p, "'steps' must be an object with one entry per step id"]
     for sid in manifest["steps"]:
-        if sid not in given:
+        if sid in steps and steps[sid].skill in GRADED and sid not in given:
             p.append(f"steps: answered step '{sid}' has no feedback")
     for sid, f in given.items():
         where = f"steps.{sid}"
         if sid not in steps:
             p.append(f"{where}: not a step of round {rnd.id}")
+            continue
+        if steps[sid].skill not in GRADED:
+            p.append(f"{where}: det-coach scores {steps[sid].skill} steps itself. Remove it.")
             continue
         if not isinstance(f, dict):
             p.append(f"{where} must be an object")

@@ -4,6 +4,7 @@ import urllib.error
 import urllib.request
 
 import pytest
+from conftest import write_round
 
 from detcoach.server import serve
 
@@ -91,3 +92,24 @@ def test_byte_ranges(base):
         assert r.headers["Content-Range"] == "bytes 1-3/4"
         assert r.read() == b"\xd8\xff\xd9"
     assert request(url, Range="bytes=9-")[0] == 416
+
+
+def test_reading_answers_are_saved_as_json_and_scored(tmp_path):
+    words = [{"word": "cat", "real": True}, {"word": "blorp", "real": False}]
+    write_round(tmp_path, tasks=[{"id": "select", "type": "read_select", "words": words}])
+    httpd = serve(tmp_path, 0)
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    try:
+        url = f"http://127.0.0.1:{httpd.server_address[1]}"
+        _, body = request(url + "/api/attempts", json.dumps({"round": "round-x"}).encode())
+        aid = json.loads(body)["id"]
+        step = f"{url}/api/attempts/{aid}/steps"
+        assert request(f"{step}/select-1?final=1&seconds=2", b'{"real": true}')[0] == 200
+        assert request(f"{step}/select-2?final=1&seconds=5", b'{"real": true}')[0] == 200
+        assert request(f"{step}/select-1?final=1", b"not json")[0] == 400
+        detail = json.loads(request(f"{url}/api/attempts/{aid}")[1])
+        assert detail["scores"]["select-1"]["credit"] == 1
+        assert detail["scores"]["select-2"]["credit"] == 0
+        assert detail["skills"]["reading"] == {"credit": 1.0, "points": 2, "share": 0.5}
+    finally:
+        httpd.shutdown()

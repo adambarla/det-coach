@@ -11,18 +11,32 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+GRADED = ("writing", "speaking")  # the agent grades these skills; det-coach scores the rest
+
 
 @dataclass(frozen=True)
 class TaskType:
     name: str
-    skill: str  # "writing" or "speaking"
+    skill: str  # "reading", "listening", "writing" or "speaking"
     prep: int  # seconds to read and plan before the answer starts
-    answer: int  # seconds to answer (speaking: the maximum)
-    weight: str  # share of the writing or speaking subscore, from the Scoring Guide (2026)
-    follow_up_answer: int = 0  # interactive writing only: time for the second question
+    answer: int  # seconds to answer (speaking: the maximum; sets: per question)
+    weight: str  # share of the subscore, from the Scoring Guide (2026)
+    follow_up_answer: int = 0  # interactive writing: part 2; interactive listening: summary
 
+
+ADAPTIVE = "adaptive in the real test, no fixed share"
 
 TASK_TYPES: dict[str, TaskType] = {
+    "read_select": TaskType("Read and Select", "reading", 0, 5, f"Reading, {ADAPTIVE}"),
+    "fill_blanks": TaskType("Fill in the Blanks", "reading", 0, 20, f"Reading, {ADAPTIVE}"),
+    "read_complete": TaskType("Read and Complete", "reading", 0, 180, f"Reading, {ADAPTIVE}"),
+    "listen_type": TaskType("Listen and Type", "listening", 0, 60, f"Listening, {ADAPTIVE}"),
+    "interactive_reading": TaskType(
+        "Interactive Reading", "reading", 0, 480, f"Reading, {ADAPTIVE}"
+    ),
+    "interactive_listening": TaskType(
+        "Interactive Listening", "listening", 0, 390, f"Listening, {ADAPTIVE}", 75
+    ),
     "write_photo": TaskType("Write About the Photo", "writing", 0, 60, "33% of Writing (all 3)"),
     "interactive_writing": TaskType(
         "Interactive Writing", "writing", 30, 300, "22% of Writing (both parts)", 180

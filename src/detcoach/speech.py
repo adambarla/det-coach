@@ -125,17 +125,31 @@ def render(lines: list[Line], out: Path) -> None:
         subprocess.run(cmd, check=True, capture_output=True)
 
 
-def audio_path(cache_dir: Path, rnd: Round, step_id: str) -> Path | None:
-    """Return the cached audio for a step, rendering it first if needed."""
-    step = next((s for s in rnd.steps if s.id == step_id and s.listen), None)
-    if step is None or not available():
+def _clips(rnd: Round) -> dict[str, list[Line]]:
+    """Every audio file of a round by name: '<step>' for a whole step, '<step>.<n>' for one
+    line of a step that plays its lines one at a time (Interactive Listening)."""
+    out = {}
+    for s in rnd.steps:
+        if not s.listen or s.after:
+            continue
+        if s.type == "interactive_listening":
+            out |= {f"{s.id}.{n}": [line] for n, line in enumerate(s.listen)}
+        else:
+            out[s.id] = s.listen
+    return out
+
+
+def audio_path(cache_dir: Path, rnd: Round, name: str) -> Path | None:
+    """Return the cached audio for a step or clip, rendering it first if needed."""
+    lines = _clips(rnd).get(name)
+    if lines is None or not available():
         return None
     # The name hashes the text and voices, so edits and newly installed voices re-render.
-    key = json.dumps([(voice_for(x.voice), x.text) for x in step.listen])
-    out = cache_dir / rnd.id / f"{step_id}-{hashlib.sha1(key.encode()).hexdigest()[:10]}.m4a"
+    key = json.dumps([(voice_for(x.voice), x.text) for x in lines])
+    out = cache_dir / rnd.id / f"{name}-{hashlib.sha1(key.encode()).hexdigest()[:10]}.m4a"
     with _render_lock:
         if not out.is_file():
-            render(step.listen, out)
+            render(lines, out)
     return out
 
 
@@ -143,11 +157,10 @@ def prerender(cache_dir: Path, rnd: Round) -> None:
     """Render every spoken step in the background so the exam never waits."""
 
     def work() -> None:
-        for s in rnd.steps:
-            if s.listen:
-                try:
-                    audio_path(cache_dir, rnd, s.id)
-                except (subprocess.CalledProcessError, OSError):
-                    return  # the browser falls back to Web Speech
+        for name in _clips(rnd):
+            try:
+                audio_path(cache_dir, rnd, name)
+            except (subprocess.CalledProcessError, OSError):
+                return  # the browser falls back to Web Speech
 
     threading.Thread(target=work, daemon=True).start()

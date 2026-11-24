@@ -9,9 +9,11 @@ from __future__ import annotations
 import json
 import re
 import sys
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
+from . import content
+from .model import Line, Step
 from .tasks import TASK_TYPES
 
 SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
@@ -29,29 +31,6 @@ class RoundError(ValueError):
 
 
 @dataclass
-class Line:
-    voice: str
-    text: str
-
-
-@dataclass
-class Step:
-    id: str
-    task: str
-    type: str
-    name: str
-    skill: str
-    prep: int
-    answer: int
-    part: str = ""
-    prompt: str = ""
-    bullets: list[str] = field(default_factory=list)
-    photo: str = ""
-    listen: list[Line] = field(default_factory=list)
-    show_previous: str = ""
-
-
-@dataclass
 class Round:
     id: str
     title: str
@@ -61,8 +40,9 @@ class Round:
 
     @property
     def minutes(self) -> int:
-        # Prep, answer and about 15 s per step to read the intro screen.
-        return round(sum(s.prep + s.answer + 15 for s in self.steps) / 60)
+        # Prep and answer of every step, and about 15 s per task to read its intro screen.
+        tasks = len({s.task for s in self.steps})
+        return round((sum(s.prep + s.answer for s in self.steps) + 15 * tasks) / 60)
 
     def summary(self) -> dict:
         return {
@@ -137,6 +117,8 @@ def _check(data: dict, path: Path) -> list[str]:
                             f"{where}: each line needs 'speaker' in {VOICES} and 'text'"
                         )
                         break
+        if ttype in content.CHECKS:
+            problems += [f"{where}: {x}" for x in content.CHECKS[ttype](task)]
         if ttype == "interactive_speaking":
             topics = task.get("topics")
             if not isinstance(topics, list) or not topics:
@@ -171,6 +153,8 @@ def _expand(task: dict, photo_url: str) -> list[Step]:
                 **base,
             ),
         ]
+    if ttype in content.EXPANDERS:
+        return content.EXPANDERS[ttype](task, spec, base)
     if ttype == "interactive_speaking":
         questions = [q for t in task["topics"] for q in t["questions"]]
         return [

@@ -49,18 +49,25 @@ const ICON = {
   ear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="2" y="14" width="5" height="7" rx="2"/><rect x="17" y="14" width="5" height="7" rx="2"/></svg>',
   speaker: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path fill="none" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>',
   check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>',
+  cross: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H2zM22 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z"/></svg>',
 };
 
 const TASK_ICON = {
+  read_select: "book", fill_blanks: "book", read_complete: "book", listen_type: "ear",
+  interactive_reading: "book", interactive_listening: "ear",
   write_photo: "pen", interactive_writing: "pen", summarize_conversation: "ear", writing_sample: "pen",
   speak_photo: "mic", read_then_speak: "mic", interactive_speaking: "chat", speaking_sample: "mic",
 };
 
 function screenTitle(step) {
   switch (step.type) {
+    case "read_select": return "Is this a real English word?";
+    case "fill_blanks": case "read_complete": return "Type the missing letters to complete the text below.";
+    case "listen_type": return "Type the statement that you hear.";
     case "write_photo": return "Write one or more sentences that describe the photo.";
     case "interactive_writing": return step.show_previous ? "Now answer a follow-up question on the same topic." : "Read the question and write your answer.";
-    case "summarize_conversation": return `Summarize the conversation in ${duration(step.answer)}.`;
+    case "summarize_conversation": return `Summarize the conversation ${step.after ? "you just had" : ""} in ${duration(step.answer)}.`;
     case "writing_sample": return `Write about the topic below for ${duration(step.answer)}.`;
     case "interactive_speaking": return "Listen and answer. The question plays once.";
     default: return `Speak about the ${step.photo ? "photo" : "topic below"} for up to ${duration(step.answer)}.`;
@@ -234,14 +241,24 @@ const Mic = {
 
 // Play a step's spoken part once: the server's audio file, or the browser's voices without one.
 const Voice = {
-  async play(roundId, step) {
+  audio: null,
+
+  stop() {
+    this.audio?.pause();
+    window.speechSynthesis?.cancel();
+  },
+
+  // clip: the index of one line of the step (Interactive Listening plays its lines one by one).
+  async play(roundId, step, clip = null) {
+    const name = clip == null ? step.id : `${step.id}.${clip}`;
     const ok = await new Promise((resolve) => {
-      const a = new Audio(`/api/audio/${roundId}/${step.id}.m4a`);
+      const a = (this.audio = new Audio(`/api/audio/${roundId}/${name}.m4a`));
+      a.onpause = () => resolve(true);
       a.onended = () => resolve(true);
       a.onerror = () => resolve(false);
       a.play().catch(() => resolve(false));
     });
-    if (!ok) await this.speak(step.listen);
+    if (!ok) await this.speak(clip == null ? step.listen : [step.listen[clip]]);
   },
 
   async voices() {
@@ -310,15 +327,84 @@ function listenScreen(step) {
   return `<h2>${title}</h2><div class="speaker"><div class="play talking" id="play">${ICON.speaker}</div></div>${mic}`;
 }
 
+function introChips(group) {
+  const step = group[0], each = `${shortDuration(step.answer)} × ${group.length}`;
+  switch (step.type) {
+    case "read_select": return [["Words", group.length], ["Time", `${step.answer} s each`]];
+    case "fill_blanks": return [["Sentences", group.length], ["Time", `${step.answer} s each`]];
+    case "read_complete": return [["Type", shortDuration(step.answer)]];
+    case "listen_type": return [["Listen", "up to 3 times"], ["Type", each]];
+    case "interactive_reading": return [["Questions", 6], ["Time", shortDuration(step.answer)]];
+    case "interactive_listening": return [["Listen", "and answer"], ["Time", shortDuration(step.answer)]];
+    case "summarize_conversation": return [[step.after ? "Prepare" : "Listen", step.after ? "none" : "once"], ["Write", shortDuration(step.answer)]];
+    case "interactive_writing": return [["Prepare", `${step.prep} s`], ["Write", group.map((s) => shortDuration(s.answer)).join(" + ")]];
+    case "interactive_speaking": return [["Listen", "once"], ["Speak", `${step.answer} s × ${group.length}`]];
+  }
+  return [["Prepare", step.prep ? `${step.prep} s` : "none"], [step.skill === "writing" ? "Write" : "Speak", shortDuration(step.answer)]];
+}
+
 function introScreen(group) {
-  const step = group[0], writes = step.skill === "writing";
-  const listens = step.type === "summarize_conversation" || step.type === "interactive_speaking";
-  let answer = shortDuration(step.answer);
-  if (step.type === "interactive_writing") answer = group.map((s) => shortDuration(s.answer)).join(" + ");
-  if (step.type === "interactive_speaking") answer = `${step.answer} s × ${group.length}`;
-  const chip = (k, v) => `<div class="chip"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+  const step = group[0];
+  const chip = ([k, v]) => `<div class="chip"><div class="k">${k}</div><div class="v">${v}</div></div>`;
   return `<div class="icon-big">${ICON[TASK_ICON[step.type]]}</div><h1>${esc(step.name)}</h1>
-    <div class="chips">${listens ? chip("Listen", "once") : chip("Prepare", step.prep ? `${step.prep} s` : "none")}${chip(writes ? "Write" : "Speak", answer)}</div>`;
+    <div class="chips">${introChips(group).map(chip).join("")}</div>`;
+}
+
+// ---------- reading and listening screens ----------
+
+// Text with blanks: a word to finish ({shown, len}) or a word to choose ({options}).
+function gapsHtml(segments) {
+  let i = 0;
+  return segments.map((s) => {
+    if (typeof s === "string") return esc(s);
+    if (s.options) return `<select class="pick" data-i="${i++}"><option value=""></option>${s.options.map((o) => `<option>${esc(o)}</option>`).join("")}</select>`;
+    return `${esc(s.shown)}<input class="gap" data-i="${i++}" maxlength="${s.len}" style="width:${s.len * 1.25 + 1}ch" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off">`;
+  }).join("");
+}
+
+// A typed letter moves on to the next blank once a word is full.
+function wireGaps(root) {
+  const gaps = [...root.querySelectorAll(".gap")];
+  gaps.forEach((g, i) => g.addEventListener("input", () => {
+    if (g.value.length >= g.maxLength && gaps[i + 1]) gaps[i + 1].focus();
+  }));
+  return () => gaps.map((g) => g.value);
+}
+
+// Buttons of which the user picks one. Returns a getter for the picked text.
+function options(list, onPick = () => {}) {
+  const id = `o${Math.random().toString(36).slice(2, 8)}`;
+  const html = `<div class="options" id="${id}">${list.map((o) => `<button class="opt" type="button">${esc(o)}</button>`).join("")}</div>`;
+  let picked = "";
+  const wire = () => $(`#${id}`).querySelectorAll(".opt").forEach((b, i) => (b.onclick = () => {
+    $(`#${id}`).querySelectorAll(".opt").forEach((x) => x.classList.toggle("on", x === b));
+    picked = list[i];
+    onPick(picked);
+  }));
+  return { html, wire, get: () => picked };
+}
+
+function readSelectScreen(step) {
+  return `<h2>${screenTitle(step)}</h2><div class="word">${esc(step.data.word)}</div>`;
+}
+
+function gapScreen(step) {
+  const title = step.data.title ? `<h3 class="ptitle">${esc(step.data.title)}</h3>` : "";
+  return `<h2>${screenTitle(step)}</h2><div class="passage">${title}${gapsHtml(step.data.segments)}</div>`;
+}
+
+function listenTypeScreen(step) {
+  return `<h2>${screenTitle(step)}</h2><div class="speaker"><button class="play" id="play" type="button">${ICON.speaker}</button><div class="plays" id="plays">3 plays left</div></div>${textBox("Type your response here")}`;
+}
+
+function readingScreen(title, body) {
+  return `<div class="kicker">Interactive Reading</div><h2>${title}</h2>${body}`;
+}
+
+// The first part of an Interactive Reading text, with the right words filled in.
+function firstPart(step) {
+  let i = 0;
+  return step.data.passage.map((s) => (typeof s === "string" ? esc(s) : esc(step.key.choices[i++]))).join("");
 }
 
 // ---------- the exam ----------
@@ -385,12 +471,181 @@ class Exam {
         ui.exam(introScreen(this.group(i)));
         await waitForButton(`<button class="btn" id="go">Start</button>`);
       }
-      await (step.skill === "writing" ? this.write(step) : this.speak(step));
+      await this.run_step(step);
     }
     await api.post(`/api/attempts/${this.attemptId}/finish`);
     activeExam = null;
     Mic.close();
     this.finished();
+  }
+
+  run_step(step) {
+    const special = {
+      read_select: this.readSelect, fill_blanks: this.gaps, read_complete: this.gaps,
+      listen_type: this.listenType, interactive_reading: this.reading, interactive_listening: this.listening,
+    }[step.type];
+    return (special || (step.skill === "writing" ? this.write : this.speak)).call(this, step);
+  }
+
+  // Run a timed screen. body(time) does the work and resolves early when the user is done.
+  async timed(step, label, body) {
+    const time = countdown(step.answer, label);
+    await Promise.race([time, body(time)]);
+    Voice.stop();
+    const used = await (time.skip(), time);
+    ui.clock(null);
+    return used;
+  }
+
+  async readSelect(step) {
+    ui.exam(readSelectScreen(step));
+    let real = null;
+    const used = await this.timed(step, "Time", () => new Promise((done) => {
+      ui.foot(`<span class="pair"><button class="btn ghost" id="no">No</button><button class="btn" id="yes">Yes</button></span>`);
+      $("#yes").onclick = () => { real = true; done(); };
+      $("#no").onclick = () => { real = false; done(); };
+    }));
+    await this.save(step, { real }, "application/json", used);
+  }
+
+  async gaps(step) {
+    ui.exam(gapScreen(step));
+    const values = wireGaps($(".passage"));
+    $(".gap")?.focus();
+    // Enter submits one sentence, but not a whole paragraph by accident.
+    const go = `<button class="btn" id="go">Continue</button>`;
+    const used = await this.timed(step, "Time", () => (step.type === "fill_blanks"
+      ? waitForButton(go)
+      : new Promise((done) => { ui.foot(go); $("#go").onclick = done; })));
+    await this.save(step, { missing: values() }, "application/json", used);
+  }
+
+  async listenType(step) {
+    ui.exam(listenTypeScreen(step));
+    let plays = 3, playing = false;
+    const play = async () => {
+      if (!plays || playing) return;
+      playing = true;
+      plays--;
+      $("#play").classList.add("talking");
+      await Voice.play(this.round.id, step);
+      if (!$("#play")) return;
+      playing = false;
+      $("#play").classList.remove("talking");
+      $("#plays").textContent = plays ? `${plural(plays, "play")} left` : "No plays left";
+      if (!plays) $("#play").classList.add("done");
+    };
+    $("#play").onclick = play;
+    const used = await this.timed(step, "Time", () => {
+      play();
+      $("#box").focus();
+      return new Promise((done) => {
+        ui.foot(`<button class="btn" id="skip">Submit</button>`);
+        $("#skip").onclick = done;
+      });
+    });
+    await this.save(step, { text: $("#box").value, plays: 3 - plays }, "application/json", used);
+  }
+
+  async reading(step) {
+    const d = step.data, ans = { choices: [], missing: "", highlight: ["", ""], idea: "", title: "" };
+    const draft = setInterval(() => this.post(step, ans, "application/json", false).catch(() => {}), 5000);
+    const next = (label = "Next") => waitForButton(`<button class="btn" id="go">${label}</button>`);
+    const used = await this.timed(step, "Time", async () => {
+      ui.exam(readingScreen("Select the best option for each missing word.", `<div class="passage">${gapsHtml(d.passage)}</div>`));
+      const picks = [...document.querySelectorAll(".pick")];
+      picks.forEach((s) => (s.onchange = () => (ans.choices = picks.map((x) => x.value))));
+      await next();
+      ans.choices = picks.map((x) => x.value);
+
+      const first = firstPart(step);
+      const choice = options(d.missing_options, (v) => ($("#blank").textContent = v));
+      ui.exam(readingScreen("Select the best sentence to fill in the blank in the passage.",
+        `<div class="passage">${first} <span class="blank" id="blank">&nbsp;</span> ${esc(d.rest)}</div>${choice.html}`));
+      choice.wire();
+      await next();
+      ans.missing = choice.get();
+
+      const full = `<div class="passage hl" id="text">${esc(step.key.full_text)}</div>`;
+      // One listener for both questions: a selection always answers the question on screen.
+      let q = 0;
+      const track = () => {
+        const sel = window.getSelection(), text = $("#text");
+        if (text && sel.rangeCount && text.contains(sel.anchorNode) && sel.toString().trim()) {
+          ans.highlight[q] = sel.toString().trim();
+          $("#mark").textContent = ans.highlight[q];
+        }
+      };
+      document.addEventListener("selectionchange", track);
+      for (; q < 2; q++) {
+        window.getSelection().removeAllRanges();
+        ui.exam(readingScreen("Click and drag text to highlight the answer to the question below.",
+          `<div class="prompt">${esc(d.highlight[q])}</div>${full}<div class="label">Your answer</div><div class="answer" id="mark">&nbsp;</div>`));
+        await next();
+      }
+      document.removeEventListener("selectionchange", track);
+      window.getSelection().removeAllRanges();
+
+      for (const [key, title, list] of [["idea", "Select the idea that is expressed in the passage.", d.idea_options], ["title", "Select the best title for the passage.", d.title_options]]) {
+        const pick = options(list, (v) => (ans[key] = v));
+        ui.exam(readingScreen(title, `<div class="passage">${esc(step.key.full_text)}</div>${pick.html}`));
+        pick.wire();
+        await next(key === "title" ? "Submit" : "Next");
+      }
+    });
+    clearInterval(draft);
+    await this.save(step, ans, "application/json", used);
+  }
+
+  async listening(step) {
+    const d = step.data, ans = { complete: d.complete.map(() => ""), turns: [] };
+    const draft = setInterval(() => this.post(step, ans, "application/json", false).catch(() => {}), 5000);
+    const used = await this.timed(step, "Time", async () => {
+      const sentences = d.complete.map(([a, b], i) => `<li>${esc(a)}<input class="gap wide" data-i="${i}" spellcheck="false" autocomplete="off">${esc(b)}</li>`).join("");
+      ui.exam(`<div class="kicker">Interactive Listening</div><h2>Listen to the scenario and complete the sentences.</h2>
+        <div class="speaker"><button class="play" id="play" type="button">${ICON.speaker}</button></div><ol class="sentences">${sentences}</ol>`);
+      let playing = false;
+      $("#play").onclick = async () => {
+        if (playing) return;
+        playing = true;
+        $("#play").classList.add("talking");
+        await Voice.play(this.round.id, step, 0);
+        playing = false;
+        $("#play")?.classList.remove("talking");
+      };
+      const inputs = [...document.querySelectorAll(".sentences .gap")];
+      inputs.forEach((x, i) => (x.oninput = () => (ans.complete[i] = x.value)));
+      $("#play").click();
+      await waitForButton(`<button class="btn" id="go">Continue</button>`);
+
+      ui.exam(`<div class="kicker">Interactive Listening</div><h2>Select the best response.</h2><div class="chat" id="chat"></div><div id="choose"></div>`);
+      const say = (who, html) => $("#chat").insertAdjacentHTML("beforeend", `<div class="bubble ${who}">${html}</div>`);
+      let n = 0;
+      for (const turn of d.turns) {
+        if (turn.clip != null) {
+          say("them", `<span class="play-s talking">${ICON.speaker}</span>`);
+          ui.foot(`<button class="btn" disabled>Listening</button>`);
+          await Voice.play(this.round.id, step, turn.clip);
+          $("#chat .bubble:last-child .play-s")?.classList.remove("talking");
+          continue;
+        }
+        const right = step.key.turns[n];
+        const pick = options(turn.options);
+        $("#choose").innerHTML = pick.html;
+        pick.wire();
+        await new Promise((done) => {
+          ui.foot(`<button class="btn" id="go">Continue</button>`);
+          $("#go").onclick = () => pick.get() && done();
+        });
+        ans.turns[n++] = pick.get();
+        const ok = pick.get() === right;
+        $("#choose").innerHTML = "";
+        say(`you ${ok ? "ok" : "bad"}`, `<span class="mark">${ok ? ICON.check : ICON.cross}</span>${esc(right)}`);
+      }
+      await waitForButton(`<button class="btn" id="go">Continue</button>`);
+    });
+    clearInterval(draft);
+    await this.save(step, ans, "application/json", used);
   }
 
   async listen(step) {
@@ -401,7 +656,7 @@ class Exam {
   }
 
   async write(step) {
-    if (step.type === "summarize_conversation") {
+    if (step.type === "summarize_conversation" && !step.after) {
       ui.exam(listenScreen(step));
       await this.listen(step);
     }
@@ -584,27 +839,54 @@ function stepFeedback(f, step) {
     ${list("What worked", f.strengths)}${fixes ? `<div class="label">Fixes</div>${fixes}` : ""}${list("Next time", f.next_time)}${model}`;
 }
 
+const GRADED = new Set(["writing", "speaking"]);
+
+function creditMark(c) {
+  if (c >= 1) return `<span class="ok">${ICON.check}</span>`;
+  if (c <= 0) return `<span class="no">${ICON.cross}</span>`;
+  return `<b>${Math.round(c * 100)}%</b>`;
+}
+
+// One box per reading or listening task, with every item that det-coach scored.
+function scoredTask(d, steps) {
+  const items = steps.flatMap((s) => d.scores[s.id]?.items || []);
+  const credit = items.reduce((a, x) => a + x.credit, 0);
+  const rows = items.map((x) => `<tr><td>${esc(x.prompt)}</td><td>${esc(x.given) || '<span class="muted">(none)</span>'}</td><td>${esc(x.key)}</td><td class="c">${creditMark(x.credit)}</td></tr>`).join("");
+  return `<section class="box step" id="step-${esc(steps[0].task)}">
+    <div class="step-h"><h3>${esc(steps[0].name)}</h3><span class="band">${+credit.toFixed(1)} of ${items.length}</span></div>
+    <div class="table"><table class="items"><thead><tr><th>Question</th><th>Your answer</th><th>Answer</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
+}
+
 function resultsPage(d) {
   const { round, feedback: fb, manifest } = d;
   const answered = round.steps.filter((s) => manifest.steps[s.id]);
   const shown = round.steps.filter((s) => manifest.steps[s.id] || d.answers[s.id] != null);
   let head = `<h1>${esc(round.title)}</h1>
     <div class="muted">${when(manifest.started)} · ${plural(answered.length, "answer")} of ${round.steps.length}</div>`;
+  const share = (k) => (d.skills?.[k] ? `<div class="score"><div class="k">${k[0].toUpperCase() + k.slice(1)} points</div><div class="v">${Math.round(d.skills[k].share * 100)}%</div></div>` : "");
+  const shares = share("reading") + share("listening");
   if (fb) {
     const score = (k, label) => (fb.estimate?.[k] ? `<div class="score"><div class="k">${label}</div><div class="v">${bandRange(fb.estimate[k])}</div></div>` : "");
-    head += `<div class="scores">${score("writing", "Writing estimate")}${score("speaking", "Speaking estimate")}</div>
+    head += `<div class="scores">${shares}${score("writing", "Writing estimate")}${score("speaking", "Speaking estimate")}</div>
       <p class="disclaimer">Estimated by ${esc(fb.grader)} from the official scoring guide. These are not official scores.</p>
       <p style="margin-top:16px">${esc(fb.summary)}</p>
       <h3 style="margin-top:22px">Top priorities</h3>
       <ol class="steps">${fb.priorities.map((p) => `<li><span><b>${esc(p.title)}.</b> ${esc(p.detail)}</span></li>`).join("")}</ol>`;
+  } else if (shares) {
+    head += `<div class="scores">${shares}</div>`;
   }
+  if (shares) head += `<p class="disclaimer">det-coach scores reading and listening itself. The real test adapts these questions to you, so a share of points is not a DET score.</p>`;
   const waiting = fb ? "" : d.status === "in_progress"
     ? `<section class="box waiting"><h3>This attempt is not finished</h3>
         <p>You can still get feedback on the saved answers. Ask your coding agent: <b>“Grade det-coach attempt ${esc(manifest.id)}.”</b></p></section>`
     : `<section class="box waiting"><h3>Waiting for feedback</h3>
         <p>Ask your coding agent in this project folder: <b>“Grade my latest det-coach attempt.”</b></p>
         <p class="muted">The agent runs <code>det-coach packet ${esc(manifest.id)}</code>, grades each answer and writes <code>feedback.json</code>. This page updates by itself.</p></section>`;
-  const steps = shown.map((s) => {
+  const steps = shown.map((s, i) => {
+    if (!GRADED.has(s.skill)) {
+      if (i > 0 && shown[i - 1].task === s.task) return "";
+      return scoredTask(d, shown.filter((x) => x.task === s.task));
+    }
     const f = fb?.steps?.[s.id];
     return `<section class="box step" id="step-${esc(s.id)}">
       <div class="step-h"><h3>${esc(s.name)}${s.part ? ` <span class="muted">· ${esc(s.part)}</span>` : ""}</h3>${f ? `<span class="band">${bandRange(f.band)}</span>` : ""}</div>
@@ -636,11 +918,17 @@ async function showPreview(roundId, stepId) {
   if (i < 0) throw new Error(`No step ${stepId} in ${roundId}`);
   const step = round.steps[i];
   ui.progress(i, round.steps.length);
-  if (step.type === "interactive_speaking") ui.exam(listenScreen(step));
+  const receptive = { read_select: readSelectScreen, fill_blanks: gapScreen, read_complete: gapScreen, listen_type: listenTypeScreen }[step.type];
+  if (receptive) ui.exam(receptive(step));
+  else if (step.type === "interactive_reading") ui.exam(readingScreen("Select the best option for each missing word.", `<div class="passage">${gapsHtml(step.data.passage)}</div>`));
+  else if (step.type === "interactive_listening") ui.exam(`<div class="kicker">Interactive Listening</div><h2>Listen to the scenario and complete the sentences.</h2><div class="speaker"><div class="play">${ICON.speaker}</div></div><ol class="sentences">${step.data.complete.map(([a, b]) => `<li>${esc(a)}<input class="gap wide">${esc(b)}</li>`).join("")}</ol>`);
+  else if (step.type === "interactive_speaking") ui.exam(listenScreen(step));
   else if (step.skill === "speaking") ui.exam(speakScreen(step), !!step.photo);
   else ui.exam(writeScreen(step, step.show_previous ? "(your answer to part 1)" : null), !!step.photo);
-  ui.clock(step.skill === "writing" ? "Write" : "Speak", step.answer);
-  ui.foot(`<button class="btn">${step.skill === "writing" ? "Submit" : "Record now"}</button>`, "");
+  const graded = step.skill === "writing" || step.skill === "speaking";
+  ui.clock(graded ? (step.skill === "writing" ? "Write" : "Speak") : "Time", step.answer);
+  if (step.type === "read_select") ui.foot(`<span class="pair"><button class="btn ghost">No</button><button class="btn">Yes</button></span>`, "");
+  else ui.foot(`<button class="btn">${step.skill === "speaking" ? "Record now" : graded ? "Submit" : "Continue"}</button>`, "");
 }
 
 // ---------- router ----------

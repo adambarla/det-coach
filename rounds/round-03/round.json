@@ -1,0 +1,477 @@
+{
+  "id": "round-03",
+  "title": "A full test: science, cities and learning",
+  "tasks": [
+    {
+      "id": "select",
+      "type": "read_select",
+      "words": [
+        {
+          "word": "harvest",
+          "real": true
+        },
+        {
+          "word": "brastic",
+          "real": false
+        },
+        {
+          "word": "reluctant",
+          "real": true
+        },
+        {
+          "word": "conveal",
+          "real": false
+        },
+        {
+          "word": "throdge",
+          "real": false
+        },
+        {
+          "word": "neighbor",
+          "real": true
+        },
+        {
+          "word": "absorb",
+          "real": true
+        },
+        {
+          "word": "remensive",
+          "real": false
+        },
+        {
+          "word": "dispolve",
+          "real": false
+        },
+        {
+          "word": "fragile",
+          "real": true
+        },
+        {
+          "word": "decline",
+          "real": true
+        },
+        {
+          "word": "flarment",
+          "real": false
+        },
+        {
+          "word": "obstrain",
+          "real": false
+        },
+        {
+          "word": "ceiling",
+          "real": true
+        },
+        {
+          "word": "snorbid",
+          "real": false
+        },
+        {
+          "word": "honest",
+          "real": true
+        }
+      ]
+    },
+    {
+      "id": "blanks",
+      "type": "fill_blanks",
+      "sentences": [
+        "Please turn off your phone before the {concert} begins.",
+        "The bridge was closed for two weeks because of {repairs}.",
+        "She speaks quietly, but her ideas are always very {clear}.",
+        "Most visitors {arrive} in the morning, before the museum gets crowded.",
+        "He was {disappointed} when the trip was cancelled at the last minute.",
+        "Drinking enough water is {especially} important on hot days.",
+        "The company plans to {reduce} its use of plastic by half next year."
+      ]
+    },
+    {
+      "id": "complete-1",
+      "type": "read_complete",
+      "title": "Why We Yawn",
+      "passage": "Almost every animal with a backbone yawns, from fish to birds to people. For a long {time}, scientists {believed} that yawning {brought} more oxygen {into} the blood. Later {experiments} did not {support} this idea. People who {breathed} air with {extra} oxygen yawned just as {often}. One newer theory {says} that yawning helps to {cool} the brain. Whatever the reason, it is hard to read about yawning without doing it yourself."
+    },
+    {
+      "id": "complete-2",
+      "type": "read_complete",
+      "title": "The First Public Libraries",
+      "passage": "For most of history, books were rare and expensive. Only rich {families} and religious {schools} could afford to {keep} large collections. In the {nineteenth} century, many {cities} began to open {libraries} that were free {for} everyone. Workers {could} borrow a book after {work} and return it a {week} later. Some people {worried} that ordinary readers would {choose} only light novels. Even so, the libraries became some of the busiest public buildings in town."
+    },
+    {
+      "id": "complete-3",
+      "type": "read_complete",
+      "title": "A Lesson from the Garden",
+      "passage": "When Mina moved into her first apartment, she decided to grow tomatoes on the balcony. She {bought} three small plants and {watered} them every {morning}. After a {month}, the leaves {turned} yellow and the {plants} looked weak. A {neighbor} who {noticed} the problem {told} her that she was {giving} them too {much} water. Mina waited until the soil was dry before she watered again. By the end of summer, she had more tomatoes than she could eat."
+    },
+    {
+      "id": "dictation",
+      "type": "listen_type",
+      "sentences": [
+        "The library will close early on Friday because of the holiday.",
+        "Could you send me the notes from yesterday's lecture?",
+        "Most of the students prefer to study in small groups.",
+        "I think the new bus route saves people a lot of time.",
+        "Please remember to bring a photo ID to the exam.",
+        "The museum is free for children under twelve.",
+        "We should have checked the weather before we left the house."
+      ]
+    },
+    {
+      "id": "reading-1",
+      "type": "interactive_reading",
+      "passage": "On a summer afternoon, the center of a large city can be several degrees {warmer|colder|wetter} than the countryside around it. Scientists call this the urban heat island {effect|reason|story}. Dark roads and roofs {absorb|reflect|forget} sunlight during the day and release the heat slowly at night. Cities also have fewer trees, which {cool|warm|hide} the air when water evaporates from their leaves. In addition, cars and air conditioners {produce|remove|prevent} heat of their own.",
+      "missing_sentence": {
+        "answer": "This extra heat can be dangerous for older people and young children during heat waves.",
+        "wrong": [
+          "Many families enjoy visiting the countryside on summer weekends.",
+          "Scientists first measured rainfall in large cities more than a century ago."
+        ]
+      },
+      "rest": "Some cities are now fighting back. Paris and Los Angeles have painted streets and roofs in light colors that send sunlight back into the sky. Other cities plant thousands of trees each year and turn empty lots into small parks. These changes cost money, but they can lower summer temperatures by one or two degrees. That may not sound like much, but on the hottest days it can mean fewer people in hospital.",
+      "highlight": [
+        {
+          "question": "Why do dark roads and roofs make cities hotter?",
+          "answer": "absorb sunlight during the day and release the heat slowly at night"
+        },
+        {
+          "question": "How much can these changes lower summer temperatures?",
+          "answer": "by one or two degrees"
+        }
+      ],
+      "main_idea": {
+        "answer": "Cities are hotter than the land around them, but they can take steps to reduce the heat.",
+        "wrong": [
+          "Trees grow better in the countryside than in cities.",
+          "Air conditioners are the main cause of heat in modern cities.",
+          "Painting roofs is too expensive for most cities."
+        ]
+      },
+      "best_title": {
+        "answer": "Why Cities Get Hot and How They Cool Down",
+        "wrong": [
+          "The History of Air Conditioning",
+          "A Guide to Planting Trees at Home",
+          "Summer Holidays in the Countryside"
+        ]
+      }
+    },
+    {
+      "id": "reading-2",
+      "type": "interactive_reading",
+      "passage": "Daniel had played the violin for six years, but he had never played {alone|together|loudly} in front of an audience. When his teacher asked him to perform at the school concert, he {agreed|refused|forgot} before he had time to think. For the next three weeks, he {practiced|avoided|explained} the same piece every evening. On the night of the concert, his hands were {shaking|sleeping|singing} as he walked onto the stage. He looked at the crowd and could not {remember|return|receive} the first note.",
+      "missing_sentence": {
+        "answer": "Then he saw his grandmother in the front row, smiling and nodding at him.",
+        "wrong": [
+          "The concert hall was built more than fifty years ago.",
+          "After the concert, everyone went to a restaurant for dinner."
+        ]
+      },
+      "rest": "He closed his eyes, took a deep breath and began to play. The first few notes were quiet and uncertain, but soon the music carried him along. When he finished, the room was silent for a moment, and then everyone began to clap. Later, Daniel said that he did not remember most of the performance. He only remembered the feeling that he could do it again.",
+      "highlight": [
+        {
+          "question": "What did Daniel do to prepare for the concert?",
+          "answer": "practiced the same piece every evening"
+        },
+        {
+          "question": "How did the audience react when Daniel finished?",
+          "answer": "the room was silent for a moment, and then everyone began to clap"
+        }
+      ],
+      "main_idea": {
+        "answer": "A nervous young musician finds the courage to perform in public for the first time.",
+        "wrong": [
+          "A violin teacher explains how to choose music for a concert.",
+          "A boy decides to stop playing the violin after a bad concert.",
+          "A grandmother teaches her grandson to play the violin."
+        ]
+      },
+      "best_title": {
+        "answer": "Daniel's First Solo",
+        "wrong": [
+          "How to Build a Concert Hall",
+          "A Family Dinner After the Show",
+          "Learning a New Instrument at Sixty"
+        ]
+      }
+    },
+    {
+      "id": "listening-1",
+      "type": "interactive_listening",
+      "partner": "professor",
+      "scenario": "You are a student in an introductory biology course. Last Thursday you were sick with the flu, so you missed the weekly lab session. In that lab, the class measured how fast plants grow under different colors of light. Your lab report is due next Monday, and you want to ask your professor how you can make up the work.",
+      "complete": [
+        {
+          "sentence": "You missed the lab session because you ___.",
+          "answer": "were sick with the flu"
+        },
+        {
+          "sentence": "In the lab, the class measured how fast ___.",
+          "answer": "plants grow under different colors of light"
+        },
+        {
+          "sentence": "Your lab report is due ___.",
+          "answer": "next Monday"
+        }
+      ],
+      "conversation": [
+        {
+          "you": {
+            "answer": "Hi, Professor Lee. Do you have a few minutes? I wanted to ask about last week's lab.",
+            "wrong": [
+              "Hey, what's up? I need the lab stuff from last week, okay?",
+              "Hello, Professor Lee. I wanted to ask about the final exam next month."
+            ]
+          }
+        },
+        {
+          "partner": "Of course. Come in. You weren't there on Thursday, were you?"
+        },
+        {
+          "you": {
+            "answer": "No, I wasn't. I had the flu, and I stayed home for two days.",
+            "wrong": [
+              "Yes, I was there, but I left early to catch a bus.",
+              "No, I didn't come. I thought the lab was cancelled for the holiday."
+            ]
+          }
+        },
+        {
+          "partner": "I'm sorry to hear that. Are you feeling better now?"
+        },
+        {
+          "you": {
+            "answer": "Yes, much better, thanks. I'm worried about the lab report, though.",
+            "wrong": [
+              "Yes, they are feeling much better now, thank you.",
+              "No, but I'm not worried about the lab report at all."
+            ]
+          }
+        },
+        {
+          "partner": "That's understandable. The report needs data from the experiment, so you can't write it without doing the lab."
+        },
+        {
+          "you": {
+            "answer": "Is there another time when I could do the experiment?",
+            "wrong": [
+              "Could I write the report without any data, then?",
+              "Can you tell me when the library opens tomorrow?"
+            ]
+          }
+        },
+        {
+          "partner": "Yes. The Tuesday lab group meets tomorrow at two. You can join them, and I'll tell the teaching assistant to expect you."
+        },
+        {
+          "you": {
+            "answer": "That would be great. Should I still hand in the report on Monday?",
+            "wrong": [
+              "That would be great. I'll join the Thursday group next week, then.",
+              "Thanks, but I'd rather not do the experiment at all."
+            ]
+          }
+        },
+        {
+          "partner": "No, take an extra two days. Send it to me by Wednesday."
+        },
+        {
+          "you": {
+            "answer": "Thank you so much. I'll see the teaching assistant tomorrow at two.",
+            "wrong": [
+              "Thank you. I'll send the report by next Monday, as planned.",
+              "Okay. I'll see you at the Tuesday lab next week."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "listening-2",
+      "type": "interactive_listening",
+      "partner": "student2",
+      "scenario": "You and your classmate Jordan are preparing a group presentation about recycling for your environmental science class. The presentation is on Friday morning. Jordan agreed to make the slides, but Jordan has just started a part-time job and has had very little free time. You meet at the student center to decide what to do.",
+      "complete": [
+        {
+          "sentence": "Your group presentation is about ___.",
+          "answer": "recycling"
+        },
+        {
+          "sentence": "The presentation is on ___.",
+          "answer": "Friday morning"
+        },
+        {
+          "sentence": "Jordan has little free time because of ___.",
+          "answer": "a new part-time job"
+        }
+      ],
+      "conversation": [
+        {
+          "partner": "Hey, thanks for meeting me. I have some bad news about the slides."
+        },
+        {
+          "you": {
+            "answer": "Oh no. What happened? Didn't you have time to finish them?",
+            "wrong": [
+              "Great! I knew you would finish the slides early.",
+              "Hey. I can't meet today, sorry. Maybe next week?"
+            ]
+          }
+        },
+        {
+          "partner": "Not really. I've worked almost every evening since I started at the bookstore. I've only made four slides."
+        },
+        {
+          "you": {
+            "answer": "That's okay. How many slides do we need in total?",
+            "wrong": [
+              "That's okay. How many hours do you work at the café?",
+              "Four slides is too many for a short presentation."
+            ]
+          }
+        },
+        {
+          "partner": "About twelve, I think. The professor said the talk should be ten minutes long."
+        },
+        {
+          "you": {
+            "answer": "Then why don't I make the slides about plastic, and you finish the ones about paper?",
+            "wrong": [
+              "Then let's ask the professor to cancel our presentation.",
+              "Then you should quit your job so that you can finish the slides."
+            ]
+          }
+        },
+        {
+          "partner": "That would really help. But when can we practice together? I work tonight and tomorrow night."
+        },
+        {
+          "you": {
+            "answer": "We could meet on Thursday before class and practice it twice.",
+            "wrong": [
+              "We could meet on Saturday, after the presentation.",
+              "We don't need to practice, since you already know everything."
+            ]
+          }
+        },
+        {
+          "partner": "Thursday works. I'll send you my four slides tonight so you can see the style."
+        },
+        {
+          "you": {
+            "answer": "Perfect. I'll use the same colors and fonts so everything matches.",
+            "wrong": [
+              "Perfect. I'll use different colors so people know who made each slide.",
+              "Please don't send them. I'd rather not see them."
+            ]
+          }
+        },
+        {
+          "partner": "Great. I feel much better now. Thanks for being so understanding."
+        },
+        {
+          "you": {
+            "answer": "No problem. Good luck at work tonight, and see you on Thursday.",
+            "wrong": [
+              "No problem. See you on Friday afternoon, after the presentation.",
+              "You're welcome. Good luck with your exam tomorrow."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "photo-1",
+      "type": "write_photo",
+      "photo": "station.jpg"
+    },
+    {
+      "id": "photo-2",
+      "type": "write_photo",
+      "photo": "lab.jpg"
+    },
+    {
+      "id": "photo-3",
+      "type": "write_photo",
+      "photo": "chess.jpg"
+    },
+    {
+      "id": "iw",
+      "type": "interactive_writing",
+      "prompt": "Think about a skill that you learned outside of school, such as cooking, fixing things or playing a game. Describe how you learned it and who helped you.",
+      "follow_up": "Some people believe that schools should teach more practical skills, such as cooking and managing money. Do you agree? Explain your answer."
+    },
+    {
+      "id": "speak-photo",
+      "type": "speak_photo",
+      "photo": "garden.jpg"
+    },
+    {
+      "id": "read-speak",
+      "type": "read_then_speak",
+      "prompt": "Talk about a public place in your city that you think should be improved.",
+      "bullets": [
+        "What is the place?",
+        "What problems does it have?",
+        "How would you improve it?"
+      ]
+    },
+    {
+      "id": "interview",
+      "type": "interactive_speaking",
+      "topics": [
+        {
+          "topic": "Public transport",
+          "questions": [
+            "I'd like to talk with you about public transport. How do you usually travel around your city, and why?",
+            "I see. What would make more people choose buses or trains instead of cars?",
+            "Interesting. Should public transport be free for everyone? Why or why not?"
+          ]
+        },
+        {
+          "topic": "Games",
+          "questions": [
+            "Thanks. Now let's change topics and talk about games. What kinds of games did you enjoy when you were a child?",
+            "I see. Do you think that playing games can help people learn useful skills? Give an example.",
+            "Thanks. One last question. Some parents limit how much time their children spend on video games. Is this a good idea? Explain your answer."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writing-sample",
+      "type": "writing_sample",
+      "prompt": "Some people prefer to live in a big city, while others prefer a small town. Which do you prefer, and why? Give reasons and examples."
+    },
+    {
+      "id": "speaking-sample",
+      "type": "speaking_sample",
+      "prompt": "Describe a person who taught you something important. Who was this person, what did you learn, and how has it affected your life?"
+    }
+  ],
+  "photos": {
+    "station.jpg": {
+      "title": "Passengers waiting at South Station platforms Jan 2025.jpg",
+      "author": "4300streetcar",
+      "license": "CC BY 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Passengers_waiting_at_South_Station_platforms_Jan_2025.jpg"
+    },
+    "lab.jpg": {
+      "title": "Students in Science Laboratory 01.jpg",
+      "author": "Agbor2017",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Students_in_Science_Laboratory_01.jpg"
+    },
+    "chess.jpg": {
+      "title": "Men in Paris park playing chess.jpg",
+      "author": "zoetnet",
+      "license": "CC BY 2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Men_in_Paris_park_playing_chess.jpg"
+    },
+    "garden.jpg": {
+      "title": "Planting at Our Community Place Harrisonburg VA April 2008.jpg",
+      "author": "Artaxerxes",
+      "license": "CC BY-SA 3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Planting_at_Our_Community_Place_Harrisonburg_VA_April_2008.jpg"
+    }
+  }
+}
