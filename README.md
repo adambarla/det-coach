@@ -135,23 +135,31 @@ Or write one yourself with [docs/authoring-rounds.md](docs/authoring-rounds.md).
 
 ## Official sample questions
 
-Duolingo publishes a booklet of official sample questions with audio
-([PDF](https://englishtest-static.duolingo.com/media/resources/GPN%20DET%20Sample%20Questions%20-%20Full.pdf)).
-Two scripts turn it into local rounds: 4 full tests (`official-test-01` to
-`official-test-04`) with as many questions of each type as the real test, and a pool
-of all the other questions for practice by task.
+Duolingo publishes booklets of official practice questions with audio: the
+[2025 sample questions](https://englishtest-static.duolingo.com/media/resources/GPN%20DET%20Sample%20Questions%20-%20Full.pdf),
+and [Volume 4](https://englishtest-static.duolingo.com/media/resources/DET%20Practice%20Questions%20Volume%204.pdf)
+and [Volume 5](https://englishtest-static.duolingo.com/media/resources/Practice%20Questions%20-%20Volume%205.pdf)
+of 2026, which follow the current test. The scripts in `tools/booklet` turn them into
+local rounds: 4 full tests (`official-test-01` to `official-test-04`) from the 2026
+volumes, with as many questions of each type as the real test, and one practice round
+for each booklet with all the other questions.
 
 ```bash
+mkdir -p .cache
 curl -o .cache/booklet.pdf "https://englishtest-static.duolingo.com/media/resources/GPN%20DET%20Sample%20Questions%20-%20Full.pdf"
+curl -o .cache/vol4.pdf "https://englishtest-static.duolingo.com/media/resources/DET%20Practice%20Questions%20Volume%204.pdf"
+curl -o .cache/vol5.pdf "https://englishtest-static.duolingo.com/media/resources/Practice%20Questions%20-%20Volume%205.pdf"
 uv run --with pymupdf --with zxing-cpp --with pillow python tools/booklet/extract.py .cache/booklet.pdf .cache/booklet
-python3 tools/booklet/make_rounds.py .cache/booklet
+uv run --with pymupdf --with zxing-cpp --with pillow python tools/booklet/extract_2026.py .cache/vol4.pdf .cache/vol4
+uv run --with pymupdf --with zxing-cpp --with pillow python tools/booklet/extract_2026.py .cache/vol5.pdf .cache/vol5
+python3 tools/booklet/make_rounds.py .cache/booklet .cache/vol4 .cache/vol5
 ```
 
-The extractor reads the QR codes in the booklet and downloads the recordings for
-Listen and Type. The booklet has no recordings for Interactive Listening, so the app
-speaks those conversations. The rounds leave out Listen, Then Speak, which the current
-test no longer uses. The booklet content belongs to Duolingo, so `.gitignore` keeps
-these rounds out of the repository. Do not share them.
+The extractors read the QR codes in the booklets and download the recordings. The
+2025 booklet has no recordings for Interactive Listening, so the app speaks those
+conversations. The rounds leave out Read Aloud and Listen, Then Speak, which the
+current test no longer uses. The booklet content belongs to Duolingo, so `.gitignore`
+keeps these rounds out of the repository. Do not share them.
 
 When these rounds exist, the home page, the drills and the progress use only them.
 

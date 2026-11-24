@@ -23,6 +23,7 @@ from __future__ import annotations
 import json
 import shutil
 import sys
+from itertools import zip_longest
 from pathlib import Path
 
 TESTS = 4
@@ -165,7 +166,11 @@ def main(bank_dirs: list[Path], rounds_dir: Path) -> None:
     tests: list[list[dict]] = [[] for _ in range(TESTS)]
     pools: dict[str, list[dict]] = {b: [] for b in banks}
     for kind, (_, count) in ORDER.items():
-        per_test, rest = split([i for b in current for i in banks[b].get(kind, [])], count)
+        # Alternate the banks, so that each test takes questions from all of them.
+        mixed = [
+            i for group in zip_longest(*(banks[b].get(kind, []) for b in current)) for i in group
+        ]
+        per_test, rest = split([i for i in mixed if i], count)
         for t, items in enumerate(per_test):
             tests[t] += tasks_for(kind, items, stable=False)
         for b, data in banks.items():
