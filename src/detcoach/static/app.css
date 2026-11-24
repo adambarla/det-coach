@@ -118,10 +118,9 @@ details.adv summary { cursor: pointer; color: var(--mute); font-weight: 800; }
 .round h3 { margin: 0; }
 .round .meta { color: var(--mute); font-weight: 800; font-size: 15px; }
 .round .btn { align-self: flex-start; margin-top: 8px; }
-.round .sections { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border-top: 2px solid var(--line); padding-top: 14px; margin-top: 6px; }
+.round .sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; border-top: 2px solid var(--line); padding-top: 14px; margin-top: 6px; }
 .round .sections .lbl { grid-column: 1 / -1; color: var(--mute); font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
-.round .sections a { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; padding: 8px 12px; border: 2px solid var(--line); border-bottom-width: 4px; border-radius: 12px; font-weight: 800; font-size: 15px; color: var(--ink); text-decoration: none; }
-.round .sections a span { color: var(--mute); font-size: 13px; white-space: nowrap; }
+.round .sections a { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; padding: 7px 10px; border: 2px solid var(--line); border-bottom-width: 4px; border-radius: 12px; font-weight: 800; font-size: 15px; color: var(--ink); text-decoration: none; }
 .round .sections a:hover { border-color: var(--accent); color: var(--accent-d); }
 .row { display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-top: 2px solid var(--line); text-decoration: none; color: var(--ink); }
 .row:first-child { border-top: 0; }

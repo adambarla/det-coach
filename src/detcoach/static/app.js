@@ -930,7 +930,7 @@ async function showHome() {
         <div class="meta">${plural(r.steps, "question")} · about ${r.minutes} min</div>
         <a class="btn small" href="#/exam/${esc(r.id)}">Start</a>
         ${Object.keys(r.sections).length > 1 ? `<div class="sections"><span class="lbl">Or one section</span>${Object.entries(r.sections).map(([k, v]) => `
-          <a href="#/exam/${esc(r.id)}/${k}" title="${plural(v.steps, "question")} · about ${v.minutes} min">${SECTION_NAMES[k]}<span>${v.minutes} min</span></a>`).join("")}</div>` : ""}
+          <a href="#/exam/${esc(r.id)}/${k}" title="${plural(v.steps, "question")} · about ${v.minutes} min">${SECTION_NAMES[k]}</a>`).join("")}</div>` : ""}
       </section>`).join("") || `<section class="box empty">No rounds found in rounds/.</section>`}
     </div>
     <div class="section-h">Your attempts</div>
