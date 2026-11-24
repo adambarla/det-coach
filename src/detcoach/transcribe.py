@@ -16,6 +16,8 @@ from . import metrics
 
 # Whisper drops fillers unless the prompt shows that the transcript keeps them.
 VERBATIM_PROMPT = "Umm, so, uh, I think, like... hmm. Okay, so, um, the thing is, uh, yeah."
+# Whisper can invent repeated sentences in the silence after an answer. This skips them.
+GUARDS = {"hallucination_silence_threshold": 2.0}
 MLX_MODEL = "mlx-community/whisper-large-v3-turbo"
 FW_MODEL = "large-v3-turbo"
 
@@ -69,6 +71,7 @@ def transcribe_file(path: Path, model: str | None = None) -> dict:
             language="en",
             word_timestamps=True,
             initial_prompt=VERBATIM_PROMPT,
+            **GUARDS,
         )
         words = [
             _word(w["word"], w["start"], w["end"], w.get("probability", 1))
@@ -82,6 +85,7 @@ def transcribe_file(path: Path, model: str | None = None) -> dict:
             word_timestamps=True,
             initial_prompt=VERBATIM_PROMPT,
             vad_filter=False,
+            **GUARDS,
         )
         words = [_word(w.word, w.start, w.end, w.probability) for s in segs for w in s.words or []]
     return {"text": " ".join(w["word"] for w in words), "words": words}

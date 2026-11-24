@@ -101,15 +101,18 @@ def test_speaking_steps_need_every_speaking_criterion(root):
     assert any("criteria.grammar must be an object" in p for p in problems)
 
 
-def test_latest_is_the_newest_by_start_time(root):
+def test_latest_is_the_attempt_that_finished_last(root):
     write_round(root, "round-a")
-    attempts, older = make_attempt(root)
-    newer = attempts.create("round-a")
-    attempts.finish(newer)
-    for aid, started in ((older, "2026-01-02T10:00:00"), (newer, "2026-01-03T10:00:00")):
-        m = attempts.manifest(aid)
-        attempts._write(aid, {**m, "started": started})
-    assert attempts.resolve("latest") == newer
+    attempts, first = make_attempt(root)
+    second = attempts.create("round-a")
+    attempts.finish(second)
+    # The first attempt started later but finished last.
+    for aid, started, finished in (
+        (first, "2026-01-03T10:00:00", "2026-01-03T12:00:00"),
+        (second, "2026-01-02T10:00:00", "2026-01-03T11:00:00"),
+    ):
+        attempts._write(aid, {**attempts.manifest(aid), "started": started, "finished": finished})
+    assert attempts.resolve("latest") == first
 
 
 def test_packet_shows_unsubmitted_drafts(root):

@@ -115,6 +115,7 @@ class Attempts:
                         "id": p.name,
                         "round": m["round"],
                         "started": m["started"],
+                        "finished": m["finished"],
                         "steps": len(m["steps"]),
                         "status": self.status(p.name),
                     }
@@ -122,11 +123,11 @@ class Attempts:
         return sorted(out, key=lambda a: a["started"], reverse=True)
 
     def resolve(self, ref: str) -> str:
-        """Accept an attempt id, or 'latest' for the newest finished attempt."""
+        """Accept an attempt id, or 'latest' for the attempt that finished last."""
         if ref != "latest":
             self.path(ref)
             return ref
-        for a in self.all():
-            if a["status"] != "in_progress":
-                return a["id"]
-        raise FileNotFoundError("no finished attempt yet")
+        done = [a for a in self.all() if a["finished"]]
+        if not done:
+            raise FileNotFoundError("no finished attempt yet")
+        return max(done, key=lambda a: a["finished"])["id"]

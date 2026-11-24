@@ -13,7 +13,7 @@ from .attempts import Attempts
 from .rounds import RoundError, list_rounds, load_round
 from .server import serve
 
-ATTEMPT_HELP = "attempt id, or 'latest' for the newest finished attempt (default)"
+ATTEMPT_HELP = "attempt id, or 'latest' for the attempt that finished last (default)"
 
 
 def find_root(start: Path | None = None) -> Path:
