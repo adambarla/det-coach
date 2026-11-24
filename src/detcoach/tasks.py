@@ -57,3 +57,7 @@ TASK_TYPES: dict[str, TaskType] = {
         "Listen, Then Speak", "speaking", 20, 90, "not in the 2026 test (2025 samples)"
     ),
 }
+
+# Task types of the current test, in test order. Drills and progress cover these.
+RETIRED = {"listen_then_speak"}
+DRILLS = tuple(t for t in TASK_TYPES if t not in RETIRED)

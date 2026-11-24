@@ -134,3 +134,22 @@ def test_reading_answers_are_saved_as_json_and_scored(tmp_path):
         assert detail["skills"]["reading"] == {"credit": 1.0, "points": 2, "share": 0.5}
     finally:
         httpd.shutdown()
+
+
+def test_drills_and_progress(base, root):
+    # round-x is a full test not taken yet, so its photo is held out of drills.
+    status, body = request(base + "/api/drills", json.dumps({"type": "write_photo"}).encode())
+    assert status == 404 and b"no questions" in body
+    _, body = request(base + "/api/attempts", json.dumps({"round": "round-x"}).encode())
+    aid = json.loads(body)["id"]
+    request(f"{base}/api/attempts/{aid}/steps/photo-1?final=1", b"Cows.", "text/plain")
+    status, body = request(base + "/api/drills", json.dumps({"type": "write_photo"}).encode())
+    rid = json.loads(body)["id"]
+    assert status == 200 and rid.startswith("drill-photo-")
+    drill = json.loads(request(f"{base}/api/rounds/{rid}")[1])
+    assert drill["kind"] == "drill" and drill["steps"][0]["type"] == "write_photo"
+    assert request(base + drill["steps"][0]["photo"])[0] == 200
+    assert rid not in [r["id"] for r in json.loads(request(base + "/api/rounds")[1])]
+    rows = {r["type"]: r for r in json.loads(request(base + "/api/progress")[1])}
+    assert (rows["write_photo"]["done"], rows["write_photo"]["ungraded"]) == (1, 1)
+    assert "listen_then_speak" not in rows

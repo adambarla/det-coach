@@ -187,7 +187,8 @@ def check_interactive_listening(task: dict) -> list[str]:
     if not 5 <= len(yours) <= 6:
         p.append("'conversation' needs 5 or 6 turns with 'you'")
     for i, turn in enumerate(turns, 1):
-        if not isinstance(turn, dict) or len(turn) != 1 or not ({"you", "partner"} >= turn.keys()):
+        keys = turn.keys() if isinstance(turn, dict) else set()
+        if not (keys == {"you"} or keys in ({"partner"}, {"partner", "audio"})):
             p.append(f'conversation turn {i} must be {{"partner": text}} or {{"you": choice}}')
         elif "you" in turn:
             p += [f"conversation turn {i}: {x}" for x in _choice_problems(turn["you"], "you")]
@@ -289,12 +290,12 @@ def expand_interactive_reading(task: dict, spec: TaskType, base: dict) -> list[S
 def expand_interactive_listening(task: dict, spec: TaskType, base: dict) -> list[Step]:
     """Listen and Complete with Listen and Respond (one shared timer), then the summary."""
     tid, partner = task["id"], task["partner"]
-    listen = [Line(NARRATOR, task["scenario"])]
+    listen = [Line(NARRATOR, task["scenario"], task.get("scenario_audio", ""))]
     turns, answers, lines = [], [], []
     for n, turn in enumerate(task["conversation"]):
         if "partner" in turn:
             turns.append({"clip": len(listen)})
-            listen.append(Line(partner, turn["partner"]))
+            listen.append(Line(partner, turn["partner"], turn.get("audio", "")))
             lines.append(Line(partner, turn["partner"]))
         else:
             turns.append({"options": _options(turn["you"], f"{tid}-turn-{n}")})

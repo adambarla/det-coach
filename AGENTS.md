@@ -33,6 +33,7 @@ src/detcoach/
   tasks.py       task types and official times (the only place for times)
   model.py       Step and Line, the screens of a round
   rounds.py      load and validate rounds/<id>/round.json, expand tasks into steps
+  bank.py        practice by task: drills from the questions of all rounds, progress
   content.py     reading and listening tasks: checks and expansion into steps
   score.py       scores of the reading and listening answers
   attempts.py    attempts/<id>/: answers, recordings, manifest
@@ -47,6 +48,7 @@ rubric/          the scoring rubric for graders
 tools/           calibration of the grader against official scores
   booklet/       make local rounds (official-*) from the official sample booklet
 attempts/        the user's answers (git ignores it)
+drills/          practice sets of one task type (git ignores it)
 ```
 
 ## Rules

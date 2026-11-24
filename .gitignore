@@ -22,3 +22,6 @@ build/
 
 # Rounds made from the official sample booklet are copyrighted (tools/booklet).
 rounds/official-*/
+
+# Practice sets of one task type, made from your rounds (det-coach drills).
+drills/

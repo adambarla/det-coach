@@ -22,8 +22,12 @@ corrections of your own sentences and a stronger model answer.
 - **A test-like experience.** The screens follow the official ones: one timed screen
   at a time, no pause button, spell check off, spoken questions that play once, and a
   Continue button that stays gray until you answer.
-- **Practice one section.** Take only the reading, listening, writing or speaking
-  tasks of a round. The writing section needs no microphone.
+- **Practice one task at a time.** The home page lists every task type with your recent
+  result and marks the one to work on next. Practice starts a short set of new
+  questions of that type. Drills never use the questions of a full test that you have
+  not taken, so each full test stays new.
+- **Full tests and sections.** Take a whole round, or only its reading, listening,
+  writing or speaking tasks. The writing section needs no microphone.
 - **Local and private.** The app, the recordings and the transcription run on your
   computer.
 - **Feedback in the app.** Score bands for each criterion, fixes that quote your own
@@ -50,8 +54,8 @@ cd det-coach
 uv run det-coach practice
 ```
 
-Your browser opens at http://127.0.0.1:8765. Choose a round and start. Your answers
-save to `attempts/` as you go.
+Your browser opens at http://127.0.0.1:8765. Choose a task to practice, or a full test.
+Your answers save to `attempts/` as you go. Practice sets save to `drills/`.
 
 ## Commands
 
@@ -133,20 +137,23 @@ Or write one yourself with [docs/authoring-rounds.md](docs/authoring-rounds.md).
 
 Duolingo publishes a booklet of official sample questions with audio
 ([PDF](https://englishtest-static.duolingo.com/media/resources/GPN%20DET%20Sample%20Questions%20-%20Full.pdf)).
-Two scripts make 20 practice tests from it, `official-01` to `official-20`. Each test
-has easy and hard questions, and together the tests use each question one time.
+Two scripts turn it into local rounds: 4 full tests (`official-test-01` to
+`official-test-04`) with as many questions of each type as the real test, and a pool
+of all the other questions for practice by task.
 
 ```bash
 curl -o .cache/booklet.pdf "https://englishtest-static.duolingo.com/media/resources/GPN%20DET%20Sample%20Questions%20-%20Full.pdf"
 uv run --with pymupdf --with zxing-cpp --with pillow python tools/booklet/extract.py .cache/booklet.pdf .cache/booklet
 python3 tools/booklet/make_rounds.py .cache/booklet
-uv run det-coach practice --round official-01
 ```
 
 The extractor reads the QR codes in the booklet and downloads the recordings for
-Listen and Type and Listen, Then Speak. The booklet has no recordings for Interactive
-Listening, so the app speaks those conversations. The booklet content belongs to
-Duolingo, so `.gitignore` keeps these rounds out of the repository. Do not share them.
+Listen and Type. The booklet has no recordings for Interactive Listening, so the app
+speaks those conversations. The rounds leave out Listen, Then Speak, which the current
+test no longer uses. The booklet content belongs to Duolingo, so `.gitignore` keeps
+these rounds out of the repository. Do not share them.
+
+When these rounds exist, the home page, the drills and the progress use only them.
 
 ## Development
 

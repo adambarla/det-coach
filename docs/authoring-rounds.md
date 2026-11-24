@@ -166,4 +166,21 @@ too informal. The app adds the summary task after the conversation.
 }
 ```
 
+### Recordings
+
+The app speaks every text with its own voices. To play a recording instead, put the
+file in `audio/` next to `round.json` and name it in the task:
+
+- `listen_type`: a sentence as `{"text": "...", "audio": "s1.mp3"}`
+- `interactive_listening`: `"scenario_audio": "scenario.mp3"`, and a partner turn as
+  `{"partner": "...", "audio": "turn2.mp3"}`
+- `interactive_speaking`: a question as `{"text": "...", "audio": "q1.mp3"}`
+
+### Pools
+
+Optional: `"kind": "pool"` makes a round of questions for practice by task only. The
+home page does not list it as a test, and drills take new questions from it first.
+A round without `kind` is a full test (or a set of tasks to take as it is). Drills use
+its questions only after the user answered them in that round.
+
 `det-coach check` reports every problem in a round, with the task that has it.

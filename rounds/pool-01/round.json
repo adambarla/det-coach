@@ -1,0 +1,144 @@
+{
+  "id": "pool-01",
+  "title": "Interactive Speaking topics",
+  "kind": "pool",
+  "tasks": [
+    {
+      "id": "talk",
+      "type": "interactive_speaking",
+      "topics": [
+        {
+          "topic": "Cooking",
+          "questions": [
+            "I'd like to ask you about cooking. How often do you cook at home, and what do you usually make?",
+            "I see. Who taught you to cook, or how did you learn?",
+            "Interesting. Should schools teach every student how to cook? Why or why not?"
+          ]
+        },
+        {
+          "topic": "Music",
+          "questions": [
+            "Let's talk about music. What kind of music do you listen to most, and when do you listen to it?",
+            "I see. Tell me about a concert or a live performance that you remember.",
+            "Interesting. Do you think that streaming services are good or bad for musicians? Explain your answer."
+          ]
+        },
+        {
+          "topic": "Friendship",
+          "questions": [
+            "I'd like to talk with you about friendship. How did you meet one of your closest friends?",
+            "I see. What makes a person a good friend, in your opinion?",
+            "Interesting. Is it easier or harder to make friends as an adult than as a child? Why?",
+            "Thanks. One last question. Can social media replace meeting friends in person? Explain your answer."
+          ]
+        },
+        {
+          "topic": "Your hometown",
+          "questions": [
+            "Let's talk about your hometown. What is the place where you grew up like?",
+            "I see. What would you show a visitor who had only one day there?",
+            "Interesting. How has your hometown changed in the last ten years?"
+          ]
+        },
+        {
+          "topic": "Phones",
+          "questions": [
+            "I'd like to ask you about mobile phones. How many hours a day do you think you use your phone, and for what?",
+            "I see. Have you ever tried to spend a day without your phone? What happened?",
+            "Interesting. At what age should children get their first smartphone? Explain your answer."
+          ]
+        },
+        {
+          "topic": "Reading",
+          "questions": [
+            "Let's talk about reading. What was the last book that you read, and did you enjoy it?",
+            "I see. Do you prefer printed books or reading on a screen? Why?",
+            "Interesting. Why do you think fewer young people read books for fun today?"
+          ]
+        },
+        {
+          "topic": "Celebrations",
+          "questions": [
+            "I'd like to talk with you about celebrations. What is the most important holiday in your family, and how do you celebrate it?",
+            "I see. Tell me about a celebration that did not go as planned.",
+            "Interesting. Are traditional celebrations becoming less important? Why or why not?"
+          ]
+        },
+        {
+          "topic": "Pets",
+          "questions": [
+            "Let's talk about pets. Have you ever had a pet, or would you like to have one?",
+            "I see. What do people need to think about before they get a pet?",
+            "Interesting. Should pets be allowed in offices and university buildings? Explain your answer."
+          ]
+        },
+        {
+          "topic": "Work",
+          "questions": [
+            "I'd like to ask you about work. What job would you like to have in ten years, and why?",
+            "I see. What is more important to you in a job, the salary or the people you work with?",
+            "Interesting. Many people now work from home. What are the good and bad sides of this?",
+            "Thanks. One last question. Will computers and robots do most jobs in the future? Explain your answer."
+          ]
+        },
+        {
+          "topic": "Languages",
+          "questions": [
+            "Let's talk about learning languages. Which languages do you speak, and how did you learn them?",
+            "I see. What is the hardest part of learning a new language for you?",
+            "Interesting. With translation apps getting better, is it still worth learning other languages? Why?"
+          ]
+        },
+        {
+          "topic": "City and countryside",
+          "questions": [
+            "I'd like to talk with you about where people live. Would you rather live in a big city or in the countryside? Why?",
+            "I see. Tell me about a time that you spent in a very quiet place.",
+            "Interesting. Why do so many young people move to big cities, and is this a problem?"
+          ]
+        },
+        {
+          "topic": "Money",
+          "questions": [
+            "Let's talk about money. Did you get pocket money as a child, and what did you do with it?",
+            "I see. What is a good way for students to save money?",
+            "Interesting. Should schools teach students how to manage their money? Explain your answer."
+          ]
+        },
+        {
+          "topic": "Teamwork",
+          "questions": [
+            "I'd like to ask you about working in teams. Tell me about a group project that you were part of.",
+            "I see. What do you usually do in a team, lead or follow? Why?",
+            "Interesting. Is it fair when all members of a team get the same grade? Why or why not?"
+          ]
+        },
+        {
+          "topic": "Museums",
+          "questions": [
+            "Let's talk about museums. When did you last visit a museum or a gallery, and what did you see?",
+            "I see. What could museums do to attract more young visitors?",
+            "Interesting. Should museums be free for everyone? Explain your answer."
+          ]
+        },
+        {
+          "topic": "News",
+          "questions": [
+            "I'd like to talk with you about the news. How do you usually find out what is happening in the world?",
+            "I see. How do you decide whether a news story is true?",
+            "Interesting. Do people today know more or less about the world than people fifty years ago? Why?"
+          ]
+        },
+        {
+          "topic": "Free time",
+          "questions": [
+            "Let's talk about free time. What do you like to do on a free weekend?",
+            "I see. Tell me about a hobby that you started recently or would like to start.",
+            "Interesting. Do people today have more free time or less than in the past? Explain your answer.",
+            "Thanks. One last question. Is it important to have a hobby that has nothing to do with your work or studies? Why?"
+          ]
+        }
+      ]
+    }
+  ]
+}

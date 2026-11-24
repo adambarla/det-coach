@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 import re
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 from . import content
@@ -21,6 +21,15 @@ FILE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")  # also what the s
 VOICES = ("interviewer", "professor", "student", "student2")
 PHOTO_FIELDS = ("title", "author", "license", "source")
 OFFICIAL = "official-"  # rounds built from the official sample booklet, never committed
+DRILL = "drill-"  # practice sets of one task type, made by bank.py in drills/
+# test: a full test or a set of tasks to take as it is. pool: questions for drills only.
+# drill: a practice set that bank.py made from the questions of other rounds.
+KINDS = ("test", "pool", "drill")
+
+
+def round_dir(root: Path, round_id: str) -> Path:
+    """The folder of a round: drills/<id> for a drill, else rounds/<id>."""
+    return Path(root) / ("drills" if round_id.startswith(DRILL) else "rounds") / round_id
 
 
 class RoundError(ValueError):
@@ -38,6 +47,9 @@ class Round:
     path: Path
     photos: dict[str, dict]
     steps: list[Step]
+    kind: str = "test"
+    # drill: "<task>" or "<task>#<n>" -> the question it came from, "<round>/<task>[#<n>]"
+    origin: dict[str, str] = field(default_factory=dict)
 
     @property
     def minutes(self) -> int:
@@ -52,6 +64,7 @@ class Round:
         return {
             "id": self.id,
             "title": self.title,
+            "kind": self.kind,
             "steps": len(self.steps),
             "minutes": self.minutes,
             "sections": sections,
@@ -80,6 +93,8 @@ def _check(data: dict, path: Path) -> list[str]:
         problems.append("the folder name must be lowercase letters, digits and dashes")
     if not isinstance(data.get("title"), str) or not data["title"]:
         problems.append("needs a 'title'")
+    if data.get("kind", "test") not in KINDS:
+        problems.append(f"'kind' must be one of {', '.join(KINDS)}")
     tasks = data.get("tasks")
     if not isinstance(tasks, list) or not tasks:
         return problems + ["needs a non-empty 'tasks' list"]
@@ -145,13 +160,24 @@ def _check(data: dict, path: Path) -> list[str]:
                 problems.append(f"{where}: 'topics' needs at least one topic")
             elif any(not t.get("questions") for t in topics):
                 problems.append(f"{where}: every topic needs 'questions'")
+            elif not all(_question(q) for t in topics for q in t["questions"]):
+                problems.append(f"{where}: every question needs text")
     return problems
+
+
+def _question(q) -> str:
+    """An Interactive Speaking question: text, or {"text": ..., "audio": ...}."""
+    return q.get("text", "") if isinstance(q, dict) else q
 
 
 def _audio_files(task: dict) -> list[str]:
     """The recorded audio files that a task names."""
     items = [task, *(x for x in task.get("sentences", []) if isinstance(x, dict))]
-    return [x["audio"] for x in items if isinstance(x.get("audio"), str) and x["audio"]]
+    items += [x for x in task.get("conversation", []) if isinstance(x, dict)]
+    for topic in task.get("topics", []):
+        items += [q for q in topic.get("questions", []) if isinstance(q, dict)]
+    names = [x.get("audio") for x in items] + [task.get("scenario_audio")]
+    return [x for x in names if isinstance(x, str) and x]
 
 
 def _expand(task: dict, photo_url: str) -> list[Step]:
@@ -189,7 +215,13 @@ def _expand(task: dict, photo_url: str) -> list[Step]:
                 prep=0,
                 answer=spec.answer,
                 part=f"Question {n} of {len(questions)}",
-                listen=[Line("interviewer", q)],
+                listen=[
+                    Line(
+                        "interviewer",
+                        _question(q),
+                        q.get("audio", "") if isinstance(q, dict) else "",
+                    )
+                ],
                 **base,
             )
             for n, q in enumerate(questions, 1)
@@ -222,7 +254,15 @@ def load_round(path: Path) -> Round:
         for step in _expand(task, f"/rounds/{path.name}/photos"):
             step.section = TASK_TYPES[task["type"]].skill
             steps.append(step)
-    return Round(data["id"], data["title"], path, data.get("photos", {}), steps)
+    return Round(
+        data["id"],
+        data["title"],
+        path,
+        data.get("photos", {}),
+        steps,
+        data.get("kind", "test"),
+        data.get("origin", {}),
+    )
 
 
 def list_rounds(rounds_dir: Path) -> list[Round]:
@@ -239,6 +279,14 @@ def list_rounds(rounds_dir: Path) -> list[Round]:
     return rounds
 
 
+def practice_rounds(rounds_dir: Path) -> list[Round]:
+    """The rounds that the home page and the drills use: only the official rounds when
+    there are some (tools/booklet makes them), else every round."""
+    rounds = list_rounds(rounds_dir)
+    official = [r for r in rounds if r.id.startswith(OFFICIAL)]
+    return official or rounds
+
+
 def _norm(text: str) -> str:
     return " ".join(re.sub(r"[^a-z0-9 ]", " ", content.plain(text).lower()).split())
 
@@ -253,7 +301,7 @@ def _fingerprints(data: dict) -> list[tuple[str, str]]:
             if t.get(key):
                 out.append((key.replace("_", " "), t[key]))
         for topic in t.get("topics", []):
-            out += [("question", q) for q in topic.get("questions", [])]
+            out += [("question", _question(q)) for q in topic.get("questions", [])]
     return [(kind, _norm(text)) for kind, text in out if text]
 
 

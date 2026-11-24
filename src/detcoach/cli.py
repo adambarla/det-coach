@@ -10,7 +10,7 @@ from pathlib import Path
 
 from . import feedback, photos, speech, transcribe
 from .attempts import Attempts
-from .rounds import RoundError, list_rounds, load_round, repeats
+from .rounds import RoundError, list_rounds, load_round, repeats, round_dir
 from .server import serve
 from .tasks import SECTIONS
 
@@ -53,7 +53,7 @@ def _attempt(root: Path, ref: str):
     attempts = Attempts(root / "attempts")
     aid = attempts.resolve(ref)
     manifest = attempts.manifest(aid)
-    rnd = load_round(root / "rounds" / manifest["round"])
+    rnd = load_round(round_dir(root, manifest["round"]))
     return attempts.path(aid), manifest, rnd
 
 

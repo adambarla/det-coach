@@ -4,12 +4,14 @@ Routes
     GET  /                                  the app (static/index.html)
     GET  /static/<file>                     app assets
     GET  /rounds/<round>/photos/<file>      round photos
-    GET  /api/rounds                        round summaries
+    GET  /api/rounds                        summaries of the rounds to take (not pools)
+    GET  /api/progress                      per task type: questions done, left, recent score
     GET  /api/rounds/<round>                one round, expanded into steps
     GET  /api/audio/<round>/<step>.m4a      spoken question or conversation (404: use Web Speech)
     GET  /api/attempts                      attempt summaries
     GET  /api/attempts/<id>                 manifest, answers, transcripts and feedback
     GET  /attempts/<id>/recordings/<file>   a recording, for playback on the results page
+    POST /api/drills                        {"type": task type} -> {"id": round id of a new drill}
     POST /api/attempts                      {"round": id, "section"?: name} -> {"id": attempt id}
     POST /api/attempts/<id>/steps/<step>    body = text/plain answer or audio/* recording
     POST /api/attempts/<id>/finish
@@ -25,9 +27,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from . import feedback, score, speech
+from . import bank, feedback, score, speech
 from .attempts import Attempts
-from .rounds import FILE_NAME, Round, RoundError, list_rounds, load_round
+from .rounds import FILE_NAME, Round, RoundError, load_round, practice_rounds, round_dir
 from .tasks import SECTIONS
 
 STATIC = Path(__file__).parent / "static"
@@ -43,9 +45,10 @@ class App:
         self.cache = self.root / ".cache" / "audio"
 
     def round(self, round_id: str) -> Round:
-        if not FILE_NAME.match(round_id) or not (self.rounds_dir / round_id).is_dir():
+        path = round_dir(self.root, round_id)
+        if not FILE_NAME.match(round_id) or not path.is_dir():
             raise FileNotFoundError(round_id)
-        return load_round(self.rounds_dir / round_id)
+        return load_round(path)
 
     def attempt_detail(self, attempt_id: str) -> dict:
         base = self.attempts.path(attempt_id)
@@ -168,11 +171,14 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
                 case ["static", name] if (STATIC / name).is_file():
                     self._file(STATIC / name)
                 case ["rounds", rid, "photos", name] if (
-                    app.rounds_dir / rid / "photos" / name
+                    round_dir(app.root, rid) / "photos" / name
                 ).is_file():
-                    self._file(app.rounds_dir / rid / "photos" / name)
+                    self._file(round_dir(app.root, rid) / "photos" / name)
                 case ["api", "rounds"]:
-                    self._json([r.summary() for r in list_rounds(app.rounds_dir)])
+                    rounds = practice_rounds(app.rounds_dir)
+                    self._json([r.summary() for r in rounds if r.kind == "test"])
+                case ["api", "progress"]:
+                    self._json(bank.progress(app.root))
                 case ["api", "rounds", rid]:
                     self._json(app.round(rid).public())
                 case ["api", "audio", rid, name] if name.endswith(".m4a"):
@@ -219,6 +225,14 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
             body = self.rfile.read(size)
             try:
                 match parts:
+                    case ["api", "drills"]:
+                        req = json.loads(body or b"{}")
+                        try:
+                            rid = bank.make_drill(app.root, req.get("type", ""))
+                        except LookupError as e:
+                            return self._error(404, str(e))
+                        print(f"  new drill {rid}", flush=True)
+                        self._json({"id": rid})
                     case ["api", "attempts"]:
                         req = json.loads(body or b"{}")
                         rnd = app.round(req.get("round", ""))
@@ -226,7 +240,7 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
                         if section and section not in SECTIONS:
                             return self._error(400, "unknown section")
                         speech.prerender(app.cache, rnd)
-                        self._json({"id": app.attempts.create(rnd.id, section)})
+                        self._json({"id": app.attempts.create(rnd.id, section, rnd.title)})
                     case ["api", "attempts", aid, "steps", sid]:
                         rnd = app.round(app.attempts.manifest(aid)["round"])
                         if sid not in {s.id for s in rnd.steps}:

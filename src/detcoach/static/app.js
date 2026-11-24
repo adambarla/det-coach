@@ -3,7 +3,8 @@
  * det-coach practice app. Plain JavaScript, no build step, no dependencies.
  *
  * Routes
- *   #/                       home: rounds and past attempts
+ *   #/                       home: practice by task type, full tests and past attempts
+ *   #/drill/<type>           a new practice set of one task type, then #/exam/<its round>
  *   #/exam/<round>           take a round with the official timings
  *   #/exam/<round>/<section> take one section of a round (reading, listening, writing, speaking)
  *   #/attempt/<id>           answers, recordings, transcripts and feedback
@@ -933,46 +934,128 @@ class Exam {
 
   finished() {
     ui.clock(null);
-    ui.exam(`<div class="icon-big ok">${ICON.check}</div><h1>Round complete</h1>
-      <p>For feedback, tell your coding agent:</p><div class="prompt">Grade my latest det-coach attempt.</div>`);
-    ui.foot(`<a class="btn ok" href="#/attempt/${this.attemptId}" id="go">See results</a>`);
+    const drill = this.round.kind === "drill";
+    const graded = this.steps.some((s) => GRADED.has(s.skill));
+    ui.exam(`<div class="icon-big ok">${ICON.check}</div><h1>${drill ? "Set complete" : "Round complete"}</h1>
+      ${graded ? `<p>For feedback, tell your coding agent:</p><div class="prompt">Grade my latest det-coach attempt.</div>` : "<p>det-coach has scored your answers.</p>"}`);
+    ui.foot(`${drill ? `<a class="btn ghost" href="#/drill/${esc(this.round.steps[0].type)}">Next set</a>` : "<span></span>"}
+      <a class="btn ok" href="#/attempt/${this.attemptId}" id="go">See results</a>`);
     onEnter = () => (location.hash = `#/attempt/${this.attemptId}`);
   }
 }
 
 // ---------- home ----------
 
+const STATUS_TEXT = { graded: "Graded", awaiting_feedback: "To grade", in_progress: "Not finished" };
+const TARGET = 135; // the strictest score that many universities ask for
+const CHEVRON = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>';
+
+// How well the recent answers of a task type went: a share of points, or a grader's band.
+function taskStat(t) {
+  if (t.share != null) return { text: `${Math.round(t.share * 100)}%`, value: t.share, pos: t.share, tip: "Share of points in your recent answers" };
+  // A band counts as good from the target and weak below 120.
+  if (t.band != null) return { text: `${t.band}`, value: t.band >= TARGET ? 0.9 : t.band >= 120 ? 0.75 : 0.5, pos: (t.band - 10) / 150, tip: "Mean band of your last graded answers (DET scale 10 to 160)" };
+  return { text: "", value: null };
+}
+
+function level(v) {
+  return v == null ? "" : v >= 0.85 ? "good" : v >= 0.7 ? "fair" : "weak";
+}
+
+function taskMeta(t) {
+  if (!t.fresh && !t.done) return "No questions yet";
+  const parts = [];
+  if (t.done) parts.push(`${t.done} done`);
+  if (t.ungraded) parts.push(`${t.ungraded} to grade`);
+  return parts.join(" · ");
+}
+
+function taskRow(t, focus) {
+  const st = taskStat(t);
+  const can = t.fresh || t.done;
+  const bar = st.pos != null ? `<div class="bar ${level(st.value)}"><span style="width:${Math.max(4, Math.min(100, st.pos * 100))}%"></span></div>` : "";
+  const meta = taskMeta(t);
+  const inner = `<span class="ti">${ICON[TASK_ICON[t.type]]}</span>
+    <span class="grow"><span class="tn">${esc(t.name)}</span>${meta ? `<span class="tm">${esc(meta)}</span>` : ""}</span>
+    ${st.text ? `<span class="stat" title="${st.tip}">${esc(st.text)}${bar}</span>` : ""}
+    ${can ? CHEVRON : ""}`;
+  return can
+    ? `<a class="task${focus ? " focus" : ""}" href="#/drill/${esc(t.type)}">${inner}</a>`
+    : `<div class="task off">${inner}</div>`;
+}
+
+// The one task to work on next: the weakest result below "good", else a task not practiced yet.
+function focusTask(tasks) {
+  const open = tasks.filter((t) => t.fresh || t.done);
+  const rated = open.map((t) => [t, taskStat(t).value]).filter(([, v]) => v != null);
+  rated.sort((a, b) => a[1] - b[1] || (a[0].band ?? a[0].share) - (b[0].band ?? b[0].share));
+  if (rated.length && rated[0][1] < 0.85) return rated[0][0];
+  return open.find((t) => !t.answers) || null;
+}
+
+function focusCard(t) {
+  if (!t) return "";
+  const st = taskStat(t);
+  const why = st.text ? (t.band != null ? `Your recent answers: ${st.text}. Target: ${TARGET}.` : `Your recent answers: ${st.text} of points.`) : "Not practiced yet.";
+  return `<a class="box focus-card" href="#/drill/${esc(t.type)}">
+      <span class="ti">${ICON[TASK_ICON[t.type]]}</span>
+      <span class="grow"><span class="lbl">Focus next</span><span class="fn">${esc(t.name)}</span><span class="muted">${esc(why)}</span></span>
+      <span class="btn">Practice</span>
+    </a>`;
+}
+
+function sectionHead(name, tasks) {
+  const scored = tasks.filter((t) => t.share != null);
+  const graded = tasks.filter((t) => t.band != null);
+  let v = "";
+  if (scored.length) v = `${Math.round((scored.reduce((a, t) => a + t.share, 0) / scored.length) * 100)}%`;
+  if (graded.length) v = `${Math.round(graded.reduce((a, t) => a + t.band, 0) / graded.length)}`;
+  return `<div class="sec-h"><h3>${SECTION_NAMES[name]}</h3>${v ? `<span class="muted">${v}</span>` : ""}</div>`;
+}
+
+function testRow(r, taken) {
+  const parts = Object.keys(r.sections).length > 1
+    ? `<span class="parts">${Object.entries(r.sections).map(([k, v]) => `<a href="#/exam/${esc(r.id)}/${k}" title="${SECTION_NAMES[k]} only · ${plural(v.steps, "question")} · about ${v.minutes} min">${SECTION_NAMES[k]}</a>`).join("")}</span>`
+    : "";
+  return `<div class="test">
+      <span class="grow"><span class="tn">${esc(r.title)}${taken ? "" : ` <span class="pill graded">New</span>`}</span><span class="tm">${plural(r.steps, "question")} · ${r.minutes} min</span></span>
+      ${parts}
+      <a class="btn small" href="#/exam/${esc(r.id)}">Start</a>
+    </div>`;
+}
+
 async function showHome() {
   ui.reset();
-  const [rounds, attempts] = await Promise.all([api.get("/api/rounds"), api.get("/api/attempts")]);
-  const statusText = { graded: "Feedback ready", awaiting_feedback: "Awaiting feedback", in_progress: "Not finished" };
+  const [rounds, attempts, progress] = await Promise.all([api.get("/api/rounds"), api.get("/api/attempts"), api.get("/api/progress")]);
   const titles = Object.fromEntries(rounds.map((r) => [r.id, r.title]));
-  ui.page(`<section class="hero">
-      <h1>Duolingo English Test practice, with feedback</h1>
-      <ol class="steps">
-        <li><span><b>Take a round</b> with the official timings.</span></li>
-        <li><span><b>Tell your coding agent:</b> “Grade my latest det-coach attempt.”</span></li>
-        <li><span><b>Read the feedback</b> here.</span></li>
-      </ol>
-    </section>
-    <div class="section-h">Rounds</div>
-    <div class="rounds">${rounds.map((r) => `
-      <section class="box round">
-        <h3>${esc(r.title)}</h3>
-        <div class="meta">${plural(r.steps, "question")} · about ${r.minutes} min</div>
-        <a class="btn small" href="#/exam/${esc(r.id)}">Start</a>
-        ${Object.keys(r.sections).length > 1 ? `<div class="sections"><span class="lbl">Or one section</span>${Object.entries(r.sections).map(([k, v]) => `
-          <a href="#/exam/${esc(r.id)}/${k}" title="${plural(v.steps, "question")} · about ${v.minutes} min">${SECTION_NAMES[k]}</a>`).join("")}</div>` : ""}
-      </section>`).join("") || `<section class="box empty">No rounds found in rounds/.</section>`}
-    </div>
-    <div class="section-h">Your attempts</div>
-    <section class="box">${attempts.map((a) => `
+  const taken = new Set(attempts.map((a) => a.round));
+  const focus = focusTask(progress);
+  const sections = ["reading", "listening", "writing", "speaking"].map((name) => {
+    const tasks = progress.filter((t) => t.section === name);
+    return `<section class="box sec">${sectionHead(name, tasks)}${tasks.map((t) => taskRow(t, t === focus)).join("")}</section>`;
+  }).join("");
+  const recent = attempts.slice(0, 5), older = attempts.slice(5);
+  const attemptRow = (a) => `
       <a class="row" href="#/attempt/${esc(a.id)}">
-        <span class="grow"><span class="id">${esc(titles[a.round] || a.round)}${a.section ? ` · ${SECTION_NAMES[a.section] || esc(a.section)}` : ""}</span><br><span class="muted">${when(a.started)} · ${plural(a.steps, "answer")}</span></span>
-        <span class="pill ${a.status}">${statusText[a.status]}</span>
-      </a>`).join("") || `<div class="empty">No attempts yet. Start a round above.</div>`}
-    </section>
-    <p class="fine">det-coach is an independent open source project. It is not affiliated with or endorsed by Duolingo. Its score bands are estimates, not official scores.</p>`);
+        <span class="grow"><span class="id">${esc(a.title || titles[a.round] || a.round)}${a.section ? ` · ${SECTION_NAMES[a.section] || esc(a.section)}` : ""}</span><br><span class="muted">${when(a.started)}</span></span>
+        <span class="pill ${a.status}">${STATUS_TEXT[a.status]}</span>
+      </a>`;
+  ui.page(`${focusCard(focus)}
+    <div class="secs">${sections}</div>
+    ${rounds.length ? `<div class="section-h">Full tests</div><section class="box">${rounds.map((r) => testRow(r, taken.has(r.id))).join("")}</section>` : ""}
+    ${attempts.length ? `<div class="section-h">Recent</div>
+    <section class="box">${recent.map(attemptRow).join("")}
+      ${older.length ? `<details class="more"><summary>${plural(older.length, "older attempt")}</summary>${older.map(attemptRow).join("")}</details>` : ""}
+    </section>` : ""}
+    <p class="fine">Not affiliated with Duolingo. Scores are estimates.</p>`);
+}
+
+// A new practice set of one task type, then the exam screens for it.
+async function startDrill(type) {
+  ui.reset();
+  ui.page(`<section class="hero"><p class="muted">Picking questions…</p></section>`);
+  const { id } = await api.post("/api/drills", { type });
+  location.replace(`#/exam/${id}`);
 }
 
 // ---------- results ----------
@@ -1057,7 +1140,8 @@ function resultsPage(d) {
   const { round, feedback: fb, manifest } = d;
   const answered = round.steps.filter((s) => manifest.steps[s.id]);
   const shown = round.steps.filter((s) => manifest.steps[s.id] || d.answers[s.id] != null);
-  let head = `<h1>${esc(round.title)}</h1>
+  const again = round.kind === "drill" ? `<div class="again"><a class="btn small" href="#/drill/${esc(round.steps[0].type)}">Next set</a><a class="btn ghost small" href="#/">All tasks</a></div>` : "";
+  let head = `${again}<h1>${esc(round.title)}</h1>
     <div class="muted">${manifest.section ? `${SECTION_NAMES[manifest.section] || esc(manifest.section)} only · ` : ""}${when(manifest.started)} · ${plural(answered.length, "answer")} of ${round.steps.filter((s) => !manifest.section || s.section === manifest.section).length}</div>`;
   const share = (k) => (d.skills?.[k] ? `<div class="score"><div class="k">${k[0].toUpperCase() + k.slice(1)} points</div><div class="v">${Math.round(d.skills[k].share * 100)}%</div></div>` : "");
   const shares = share("reading") + share("listening");
@@ -1173,6 +1257,7 @@ async function route() {
   const [, view, a, b, c] = location.hash.replace(/^#\/?/, "/").split("/").map(decodeURIComponent);
   try {
     if (view === "exam" && a) await new Exam(await api.get(`/api/rounds/${a}`), b).run();
+    else if (view === "drill" && a) await startDrill(a);
     else if (view === "attempt" && a) await showAttempt(a, token);
     else if (view === "preview" && a && b) await showPreview(a, b, c);
     else await showHome();

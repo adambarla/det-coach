@@ -41,7 +41,7 @@ class Attempts:
     def _write(self, attempt_id: str, data: dict) -> None:
         (self.path(attempt_id) / "attempt.json").write_text(json.dumps(data, indent=2) + "\n")
 
-    def create(self, round_id: str, section: str = "") -> str:
+    def create(self, round_id: str, section: str = "", title: str = "") -> str:
         stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         attempt_id = f"{round_id}-{stamp}"
         n = 1
@@ -53,6 +53,7 @@ class Attempts:
         manifest = {
             "id": attempt_id,
             "round": round_id,
+            "title": title,
             "section": section,
             "started": now(),
             "finished": None,
@@ -124,6 +125,7 @@ class Attempts:
                     {
                         "id": p.name,
                         "round": m["round"],
+                        "title": m.get("title", ""),
                         "section": m.get("section", ""),
                         "started": m["started"],
                         "finished": m["finished"],
