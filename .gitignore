@@ -1,0 +1,21 @@
+# The user's answers and recordings are private.
+attempts/*
+!attempts/.gitkeep
+
+# Generated audio and Whisper output
+.cache/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# OS and editors
+.DS_Store
+.idea/
+.vscode/

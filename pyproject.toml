@@ -1,0 +1,46 @@
+[project]
+name = "det-coach"
+version = "0.1.0"
+description = "Timed practice for the writing and speaking tasks of the Duolingo English Test, with feedback from your coding agent."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "Adam Barla" }]
+keywords = ["english", "language-test", "speaking", "writing", "practice", "whisper", "claude"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Education",
+]
+dependencies = []
+
+[project.optional-dependencies]
+# Transcription backends. Pick one: mlx on Apple Silicon, faster-whisper everywhere else.
+mlx = ["mlx-whisper>=0.4"]
+whisper = ["faster-whisper>=1.1"]
+
+[project.urls]
+Repository = "https://github.com/adambarla/det-coach"
+
+[project.scripts]
+det-coach = "detcoach.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/detcoach"]
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

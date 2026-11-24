@@ -1,0 +1,146 @@
+{
+  "id": "round-02",
+  "title": "Cities, reading and working together",
+  "tasks": [
+    {
+      "id": "photo-1",
+      "type": "write_photo",
+      "photo": "bike-lane.jpg"
+    },
+    {
+      "id": "photo-2",
+      "type": "write_photo",
+      "photo": "library.jpg"
+    },
+    {
+      "id": "photo-3",
+      "type": "write_photo",
+      "photo": "picnic.jpg"
+    },
+    {
+      "id": "iw",
+      "type": "interactive_writing",
+      "prompt": "Describe a place in your town or city where people go to relax. What do people do there, and why do they like it? Include specific details.",
+      "follow_up": "Some people think that cities should turn more streets and parking spaces into parks. Would this be a good idea for the place where you live? Explain why or why not."
+    },
+    {
+      "id": "conversation",
+      "type": "summarize_conversation",
+      "conversation": [
+        {
+          "speaker": "student",
+          "text": "Hey, Sam. Are you still in the study group for the economics exam?"
+        },
+        {
+          "speaker": "student2",
+          "text": "I am, but honestly, I'm thinking about leaving it."
+        },
+        {
+          "speaker": "student",
+          "text": "Really? Why? I thought it was going well."
+        },
+        {
+          "speaker": "student2",
+          "text": "We meet on Wednesday nights, and I started a new job at the café. My shifts end at nine."
+        },
+        {
+          "speaker": "student",
+          "text": "Oh, that's a problem. We usually start at seven."
+        },
+        {
+          "speaker": "student2",
+          "text": "Right. And I don't want to slow everyone down by missing half of every session."
+        },
+        {
+          "speaker": "student",
+          "text": "What if we moved the meeting to Sunday afternoon? Most of us are free then, I think."
+        },
+        {
+          "speaker": "student2",
+          "text": "Sunday would work for me. But would the others agree?"
+        },
+        {
+          "speaker": "student",
+          "text": "I'll send a message to the group tonight and ask. If two people say no, we could also try a video call on Wednesdays after nine."
+        },
+        {
+          "speaker": "student2",
+          "text": "That sounds fair. Thanks for trying. I really don't want to study for this exam alone."
+        }
+      ]
+    },
+    {
+      "id": "writing-sample",
+      "type": "writing_sample",
+      "prompt": "Many people now read news and books on their phones instead of on paper. Is this change good or bad for readers? Give reasons and examples for your answer."
+    },
+    {
+      "id": "speak-photo",
+      "type": "speak_photo",
+      "photo": "beach-cleanup.jpg"
+    },
+    {
+      "id": "read-speak",
+      "type": "read_then_speak",
+      "prompt": "Talk about a time when you worked with other people to finish a difficult task.",
+      "bullets": [
+        "What was the task?",
+        "What did you do in the group?",
+        "What would you do differently next time?"
+      ]
+    },
+    {
+      "id": "interview",
+      "type": "interactive_speaking",
+      "topics": [
+        {
+          "topic": "Volunteering",
+          "questions": [
+            "I'd like to talk with you about volunteering. Have you ever done volunteer work, or do you know someone who has?",
+            "I see. Why do you think some people give their free time to help others without pay?",
+            "Interesting. Should schools require students to do volunteer work? Why or why not?"
+          ]
+        },
+        {
+          "topic": "Sleep",
+          "questions": [
+            "Thanks. Now let's change topics and talk about sleep. How many hours do you usually sleep, and is it enough for you?",
+            "I see. What keeps people from getting enough sleep these days?",
+            "Thanks. One last question. Should companies and universities start their day later so that people can sleep more? Explain your answer."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "speaking-sample",
+      "type": "speaking_sample",
+      "prompt": "Describe a decision that you made which changed your life in an important way. What were the choices, why did you choose as you did, and what happened as a result?"
+    }
+  ],
+  "photos": {
+    "bike-lane.jpg": {
+      "title": "A cargo bike and a teen riding a bike in a pilot bus-bike lane in Mexico City.jpg",
+      "author": "Fabián Heredia Montiel",
+      "license": "CC BY 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:A_cargo_bike_and_a_teen_riding_a_bike_in_a_pilot_bus-bike_lane_in_Mexico_City.jpg"
+    },
+    "library.jpg": {
+      "title": "Group of people engaged in reading and sharing books in a cozy library setting undefined.jpg",
+      "author": "Shixart1985",
+      "license": "CC BY 2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Group_of_people_engaged_in_reading_and_sharing_books_in_a_cozy_library_setting_undefined.jpg"
+    },
+    "picnic.jpg": {
+      "title": "Family picnic Kulanaokuaiki Campground NPS Photo Janice Wei (43852400890).jpg",
+      "author": "Hawai‘i Volcanoes NPS",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Family_picnic_Kulanaokuaiki_Campground_NPS_Photo_Janice_Wei_(43852400890).jpg"
+    },
+    "beach-cleanup.jpg": {
+      "title": "Beach Cleaning Volunteers.jpg",
+      "author": "Debbie Foote",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Beach_Cleaning_Volunteers.jpg"
+    }
+  }
+}

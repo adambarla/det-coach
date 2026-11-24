@@ -1,0 +1,96 @@
+{
+  "id": "round-01",
+  "title": "Skills, transport and learning from failure",
+  "tasks": [
+    { "id": "photo-1", "type": "write_photo", "photo": "market.jpg" },
+    { "id": "photo-2", "type": "write_photo", "photo": "bicycle-repair.jpg" },
+    { "id": "photo-3", "type": "write_photo", "photo": "kitchen.jpg" },
+    {
+      "id": "iw",
+      "type": "interactive_writing",
+      "prompt": "Describe a skill that you learned outside a classroom, such as cooking, a sport, an instrument or a tool. How did you learn it, and what made it hard or easy? Include specific details.",
+      "follow_up": "Many people believe that skills we teach ourselves stay with us longer than skills we learn in class. How does your experience support or challenge this view? Explain with details."
+    },
+    {
+      "id": "conversation",
+      "type": "summarize_conversation",
+      "conversation": [
+        { "speaker": "professor", "text": "Come in. Oh, hi Maya. What can I do for you?" },
+        { "speaker": "student", "text": "Hi, Professor Lee. I wanted to ask about the lab report that's due on Friday." },
+        { "speaker": "professor", "text": "Sure. Is something wrong with your data?" },
+        { "speaker": "student", "text": "Not exactly. Our sensor stopped working halfway through the experiment, so we only have about half of the measurements." },
+        { "speaker": "professor", "text": "I see. That happens more often than you'd think. Did you tell the lab technician?" },
+        { "speaker": "student", "text": "Yes. He fixed it yesterday, but the lab is fully booked until next Tuesday." },
+        { "speaker": "professor", "text": "Okay, here's what I suggest. Write up the results you have, and explain clearly what went wrong. Then repeat the missing runs on Tuesday and add them as an appendix." },
+        { "speaker": "student", "text": "So we can still hand in the main report on Friday?" },
+        { "speaker": "professor", "text": "Yes. And I'll give you until next Thursday for the appendix. Just mention our conversation in your cover note." },
+        { "speaker": "student", "text": "That's really helpful. Thank you so much." }
+      ]
+    },
+    {
+      "id": "writing-sample",
+      "type": "writing_sample",
+      "prompt": "Some universities require every student to take courses outside their main subject. Do you think this is a good policy? Give reasons and examples for your answer."
+    },
+    { "id": "speak-photo", "type": "speak_photo", "photo": "street-music.jpg" },
+    {
+      "id": "read-speak",
+      "type": "read_then_speak",
+      "prompt": "Talk about a time when you had to explain something difficult to a person who knew little about the topic.",
+      "bullets": ["What did you explain?", "How did you make it clear?", "How did the other person react?"]
+    },
+    {
+      "id": "interview",
+      "type": "interactive_speaking",
+      "topics": [
+        {
+          "topic": "Public transport",
+          "questions": [
+            "I'd like to ask you a few questions about public transport. How do most people in your city get to work or to school?",
+            "I see. Here's another question. What would make more people choose buses or trains instead of cars?",
+            "Interesting. Do you think public transport should be free for everyone? Why or why not?"
+          ]
+        },
+        {
+          "topic": "Online courses",
+          "questions": [
+            "Thanks for talking about transport with me. Now I'd like to change topics and ask you about online courses. Have you ever taken a course online, and what was it like?",
+            "I see. What do students lose when a class moves fully online?",
+            "Thanks. One last question. How do you think universities will teach students twenty years from now?"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "speaking-sample",
+      "type": "speaking_sample",
+      "prompt": "Some people say that we learn more from failure than from success. Describe a failure that taught you something. What happened, what did you learn, and how does it change what you do now?"
+    }
+  ],
+  "photos": {
+    "market.jpg": {
+      "title": "Pickle Vendor at the USDA Farmers Market (9126061903).jpg",
+      "author": "USDAgov",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Pickle_Vendor_at_the_USDA_Farmers_Market_(9126061903).jpg"
+    },
+    "bicycle-repair.jpg": {
+      "title": "Bicycle fundi at work.jpg",
+      "author": "RobertNiemann",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Bicycle_fundi_at_work.jpg"
+    },
+    "kitchen.jpg": {
+      "title": "Family cooking activity with kids preparing homemade fries in a cozy kitchen setting.jpg",
+      "author": "Shixart1985",
+      "license": "CC BY 2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Family_cooking_activity_with_kids_preparing_homemade_fries_in_a_cozy_kitchen_setting.jpg"
+    },
+    "street-music.jpg": {
+      "title": "A young girl's fascination with a street musician in Bab Boujloud Square, Fes..jpg",
+      "author": "AdilElouarti",
+      "license": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File:A_young_girl%27s_fascination_with_a_street_musician_in_Bab_Boujloud_Square,_Fes..jpg"
+    }
+  }
+}
