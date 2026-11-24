@@ -437,8 +437,8 @@ class Exam {
     } else {
       ui.exam(speakScreen(step), !!step.photo);
     }
-    const stopMeter = Mic.meter($("#meter"));
     if (step.prep) {
+      $("#micState").textContent = "Not recording yet";
       const prep = countdown(step.prep, "Prepare");
       ui.foot(`<button class="btn" id="skip">Record now</button>`);
       $("#skip").onclick = prep.skip;
@@ -447,6 +447,7 @@ class Exam {
     Mic.beep();
     $("#micState").innerHTML = `<span class="dot"></span> Recording`;
     $("#mic").classList.add("rec");
+    const stopMeter = Mic.meter($("#meter"));
     const stop = Mic.record();
     const answer = countdown(step.answer, "Speak");
     ui.foot(`<button class="btn bad" id="skip">Stop</button>`);
