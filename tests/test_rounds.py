@@ -3,7 +3,7 @@ import json
 import pytest
 from conftest import REPO, write_round
 
-from detcoach.rounds import RoundError, list_rounds, load_round
+from detcoach.rounds import RoundError, list_rounds, load_round, repeats
 from detcoach.tasks import TASK_TYPES
 
 
@@ -63,3 +63,38 @@ def test_invalid_rounds_are_skipped(root):
     (root / "rounds" / "round-y").mkdir()
     (root / "rounds" / "round-y" / "round.json").write_text("{")
     assert [r.id for r in list_rounds(root / "rounds")] == ["round-x"]
+
+
+def test_steps_know_their_section(root):
+    r = load_round(root / "rounds" / "round-x")
+    assert [s.section for s in r.steps] == ["writing", "writing", "writing", "speaking"]
+    assert r.summary()["sections"] == {
+        "writing": {"steps": 3, "minutes": 10},
+        "speaking": {"steps": 1, "minutes": 2},
+    }
+
+
+def test_interactive_listening_summary_stays_in_listening():
+    r = load_round(REPO / "rounds" / "round-03")
+    summary = next(s for s in r.steps if s.id == "listening-1-summary")
+    assert (summary.skill, summary.section) == ("writing", "listening")
+
+
+def test_listen_and_complete_questions_are_optional():
+    new = next(s for s in load_round(REPO / "rounds" / "round-04").steps if s.id == "listening-1")
+    old = next(s for s in load_round(REPO / "rounds" / "round-03").steps if s.id == "listening-1")
+    assert new.data["questions"][0] == "What do you want to ask students about?"
+    assert set(old.data["questions"]) == {""}
+
+
+def test_shipped_rounds_do_not_repeat_content():
+    assert repeats(REPO / "rounds") == []
+
+
+def test_repeats_are_found(tmp_path):
+    task = {"id": "ws", "type": "writing_sample", "prompt": "Is homework useful?"}
+    write_round(tmp_path, "round-a", tasks=[task])
+    write_round(tmp_path, "round-b", tasks=[{**task, "prompt": "Is  HOMEWORK useful"}])
+    found = repeats(tmp_path / "rounds")  # the prompt, and the photo that both test rounds share
+    assert [f.split(" ")[1] for f in found] == ["photo", "prompt"]
+    assert all(f.startswith("round-b:") and f.endswith("already in round-a") for f in found)

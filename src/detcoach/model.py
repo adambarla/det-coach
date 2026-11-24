@@ -29,3 +29,4 @@ class Step:
     after: str = ""  # a summary step: the step whose conversation it summarizes (not replayed)
     data: dict = field(default_factory=dict)  # what the screen shows for reading and listening
     key: dict = field(default_factory=dict)  # the correct answers, for scoring
+    section: str = ""  # the test section of the task: reading, listening, writing or speaking

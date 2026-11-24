@@ -14,7 +14,7 @@ from pathlib import Path
 
 from . import content
 from .model import Line, Step
-from .tasks import TASK_TYPES
+from .tasks import SECTIONS, TASK_TYPES
 
 SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 FILE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")  # also what the server accepts
@@ -40,20 +40,30 @@ class Round:
 
     @property
     def minutes(self) -> int:
-        # Prep and answer of every step, and about 15 s per task to read its intro screen.
-        tasks = len({s.task for s in self.steps})
-        return round((sum(s.prep + s.answer for s in self.steps) + 15 * tasks) / 60)
+        return _minutes(self.steps)
 
     def summary(self) -> dict:
+        sections = {}
+        for name in SECTIONS:
+            steps = [s for s in self.steps if s.section == name]
+            if steps:
+                sections[name] = {"steps": len(steps), "minutes": max(1, _minutes(steps))}
         return {
             "id": self.id,
             "title": self.title,
             "steps": len(self.steps),
             "minutes": self.minutes,
+            "sections": sections,
         }
 
     def public(self) -> dict:
         return {**self.summary(), "steps": [asdict(s) for s in self.steps], "photos": self.photos}
+
+
+def _minutes(steps: list[Step]) -> int:
+    # Prep and answer of every step, and about 15 s per task to read its intro screen.
+    tasks = len({s.task for s in steps})
+    return round((sum(s.prep + s.answer for s in steps) + 15 * tasks) / 60)
 
 
 def _require(task: dict, key: str, kind: type, problems: list[str], where: str) -> None:
@@ -189,7 +199,11 @@ def load_round(path: Path) -> Round:
     problems = _check(data, path)
     if problems:
         raise RoundError(path.name, problems)
-    steps = [s for t in data["tasks"] for s in _expand(t, f"/rounds/{path.name}/photos")]
+    steps = []
+    for task in data["tasks"]:
+        for step in _expand(task, f"/rounds/{path.name}/photos"):
+            step.section = TASK_TYPES[task["type"]].skill
+            steps.append(step)
     return Round(data["id"], data["title"], path, data.get("photos", {}), steps)
 
 
@@ -205,3 +219,37 @@ def list_rounds(rounds_dir: Path) -> list[Round]:
             except RoundError:
                 print(f"Skipped invalid round {p.name}. Run: det-coach check", file=sys.stderr)
     return rounds
+
+
+def _norm(text: str) -> str:
+    return " ".join(re.sub(r"[^a-z0-9 ]", " ", content.plain(text).lower()).split())
+
+
+def _fingerprints(data: dict) -> list[tuple[str, str]]:
+    """(kind, text) for every part of a round that a later round must not reuse."""
+    out = [("photo", m.get("source", "")) for m in data.get("photos", {}).values()]
+    for t in data.get("tasks", []):
+        out += [("word", w.get("word", "")) for w in t.get("words", [])]
+        out += [("sentence", x) for x in t.get("sentences", [])]
+        for key in ("title", "prompt", "follow_up", "scenario", "passage", "rest"):
+            if t.get(key):
+                out.append((key.replace("_", " "), t[key]))
+        for topic in t.get("topics", []):
+            out += [("question", q) for q in topic.get("questions", [])]
+    return [(kind, _norm(text)) for kind, text in out if text]
+
+
+def repeats(rounds_dir: Path) -> list[str]:
+    """Words, sentences, prompts, passages and photos that appear in more than one round."""
+    seen: dict[tuple[str, str], str] = {}
+    problems = []
+    for p in sorted(Path(rounds_dir).iterdir()):
+        try:
+            data = json.loads((p / "round.json").read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        for fp in dict.fromkeys(_fingerprints(data)):
+            if fp in seen and seen[fp] != p.name:
+                problems.append(f"{p.name}: {fp[0]} '{fp[1][:60]}' is already in {seen[fp]}")
+            seen.setdefault(fp, p.name)
+    return problems

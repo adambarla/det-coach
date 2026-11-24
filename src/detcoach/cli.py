@@ -10,8 +10,9 @@ from pathlib import Path
 
 from . import feedback, photos, speech, transcribe
 from .attempts import Attempts
-from .rounds import RoundError, list_rounds, load_round
+from .rounds import RoundError, list_rounds, load_round, repeats
 from .server import serve
+from .tasks import SECTIONS
 
 ATTEMPT_HELP = "attempt id, or 'latest' for the attempt that finished last (default)"
 
@@ -28,7 +29,11 @@ def find_root(start: Path | None = None) -> Path:
 def cmd_practice(args, root: Path) -> int:
     rounds = list_rounds(root / "rounds")
     httpd = serve(root, args.port)
-    url = f"http://127.0.0.1:{args.port}/" + (f"#/exam/{args.round}" if args.round else "")
+    if args.section and not args.round:
+        print("--section needs --round, for example: --round round-04 --section writing")
+        return 2
+    exam = f"#/exam/{args.round}" + (f"/{args.section}" if args.section else "")
+    url = f"http://127.0.0.1:{args.port}/" + (exam if args.round else "")
     print(f"det-coach: {len(rounds)} rounds. Practice at {url}")
     print("Answers save to attempts/. Press Ctrl+C to stop.")
     if not speech.available():
@@ -108,6 +113,9 @@ def cmd_check(args, root: Path) -> int:
             print(f"FAIL {p.name}")
             for problem in e.problems:
                 print(f"     - {problem}")
+    for problem in repeats(root / "rounds"):
+        bad += 1
+        print(f"REPEAT {problem}")
     return 1 if bad else 0
 
 
@@ -138,6 +146,7 @@ def main(argv: list[str] | None = None) -> int:
 
     p = sub.add_parser("practice", help="open the practice app in the browser")
     p.add_argument("--round", help="go straight to this round")
+    p.add_argument("--section", choices=SECTIONS, help="practice only this section of the round")
     p.add_argument("--port", type=int, default=8765, help="port to serve on (default: 8765)")
     p.add_argument("--no-open", action="store_true", help="do not open a browser tab")
     p.set_defaults(fn=cmd_practice)

@@ -52,6 +52,14 @@ def test_full_attempt(base):
     assert request(base + detail["recordings"]["read-speak"])[0] == 200
 
 
+def test_section_attempt(base):
+    data = json.dumps({"round": "round-x", "section": "writing"}).encode()
+    aid = json.loads(request(base + "/api/attempts", data)[1])["id"]
+    assert json.loads(request(f"{base}/api/attempts/{aid}")[1])["manifest"]["section"] == "writing"
+    bad = json.dumps({"round": "round-x", "section": "maths"}).encode()
+    assert request(base + "/api/attempts", bad)[0] == 400
+
+
 @pytest.mark.parametrize(
     "path, code",
     [

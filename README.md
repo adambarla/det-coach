@@ -19,14 +19,18 @@ corrections of your own sentences and a stronger model answer.
   Speaking and the two samples.
 - **Instant scores for reading and listening.** det-coach marks each answer and shows
   the right one, with partial credit where the real test gives it.
-- **A test-like experience.** One timed screen at a time, no pause button, spell check
-  off, and spoken questions that play once.
+- **A test-like experience.** The screens follow the official ones: one timed screen
+  at a time, no pause button, spell check off, spoken questions that play once, and a
+  Continue button that stays gray until you answer.
+- **Practice one section.** Take only the reading, listening, writing or speaking
+  tasks of a round. The writing section needs no microphone.
 - **Local and private.** The app, the recordings and the transcription run on your
   computer.
 - **Feedback in the app.** Score bands for each criterion, fixes that quote your own
   words, model answers, and your recordings with pauses marked in the transcript.
 - **Open content.** Rounds are JSON files with original prompts and freely licensed
-  photos. `round-03` is a full test. Your agent can write new rounds for you.
+  photos. `round-03` and `round-04` are full tests. No two rounds share a prompt, a word or
+  a photo. Your agent can write new rounds for you.
 
 ## Requirements
 
@@ -52,7 +56,7 @@ save to `attempts/` as you go.
 
 | Command | What it does |
 |---|---|
-| `uv run det-coach practice` | Start the app and open it in the browser. Add `--round round-02` to go straight to a round, `--port` to change the port, `--no-open` to not open a browser. |
+| `uv run det-coach practice` | Start the app and open it in the browser. Add `--round round-02` to go straight to a round, `--section writing` (with `--round`) to take one section, `--port` to change the port, `--no-open` to not open a browser. |
 | `uv run det-coach attempts` | List your attempts and whether they have feedback. |
 | `uv run det-coach transcribe [attempt]` | Transcribe the recordings of an attempt. `--force` transcribes again. |
 | `uv run det-coach packet [attempt]` | Transcribe, then write `packet.md`: every prompt, answer, transcript and measure in one file for grading. |

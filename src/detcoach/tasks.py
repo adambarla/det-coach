@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+SECTIONS = ("reading", "listening", "writing", "speaking")  # the order of the test
 GRADED = ("writing", "speaking")  # the agent grades these skills; det-coach scores the rest
 
 

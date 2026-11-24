@@ -1,0 +1,396 @@
+{
+  "id": "round-04",
+  "title": "A full test: travel, nature and work",
+  "tasks": [
+    {
+      "id": "select",
+      "type": "read_select",
+      "words": [
+        { "word": "journey", "real": true },
+        { "word": "plarnish", "real": false },
+        { "word": "precise", "real": true },
+        { "word": "dremble", "real": false },
+        { "word": "conspend", "real": false },
+        { "word": "shelter", "real": true },
+        { "word": "abundant", "real": true },
+        { "word": "fruntle", "real": false },
+        { "word": "whisper", "real": true },
+        { "word": "expoise", "real": false },
+        { "word": "stavid", "real": false },
+        { "word": "gradual", "real": true },
+        { "word": "venture", "real": true },
+        { "word": "morsify", "real": false },
+        { "word": "trenulate", "real": false },
+        { "word": "orchard", "real": true }
+      ]
+    },
+    {
+      "id": "blanks",
+      "type": "fill_blanks",
+      "sentences": [
+        "The forecast says it will {probably} rain this afternoon.",
+        "She keeps her passport in a {drawer} next to her bed.",
+        "After the long hike, we were too {exhausted} to cook dinner.",
+        "The company plans to {hire} twenty new engineers next year.",
+        "He {carefully} wrapped the glass vase in old newspaper.",
+        "Our flight was {delayed} by three hours because of the storm.",
+        "Regular exercise can {improve} your mood as well as your health."
+      ]
+    },
+    {
+      "id": "complete-1",
+      "type": "read_complete",
+      "title": "Why Onions Make Us Cry",
+      "passage": "Most cooks know that cutting an onion can bring tears to their eyes. When a knife {breaks} the onion's {cells}, substances that were kept apart inside them {mix} together. This {reaction} produces a gas that {rises} from the cutting board. When the {gas} reaches the eyes, it irritates {them}, and the eyes {produce} tears to wash it {away}. Chilling the {onion} before cutting it {slows} the reaction, so less gas {reaches} the face. Some cooks also wear goggles or cut onions near an open window."
+    },
+    {
+      "id": "complete-2",
+      "type": "read_complete",
+      "title": "The Borrowed Umbrella",
+      "passage": "It started to rain just as Tomas left the office. He {stood} under the roof of a small bookshop and {waited} for the storm to pass. After ten {minutes}, the owner came out and {offered} him an old green umbrella. Tomas {promised} to bring it back the next {day}, but a busy week {made} him forget. When he finally {returned}, the shop was {empty}, and a sign in the window {said} that it had {moved} to another city. Years later, he still keeps the green umbrella by his front door."
+    },
+    {
+      "id": "complete-3",
+      "type": "read_complete",
+      "title": "A Library for Tools",
+      "passage": "Some towns now have a library that lends tools instead of books. Members {pay} a small fee each year and can {borrow} drills, ladders and garden {equipment} for a week at a time. The {idea} behind it is simple. Most households {use} a drill only a few {times} a year, so it makes little {sense} for every home to {own} one. Sharing tools also {saves} money and {reduces} waste. Many tool libraries offer free classes where volunteers teach basic repairs."
+    },
+    {
+      "id": "dictation",
+      "type": "listen_type",
+      "sentences": [
+        "The pharmacy on the corner is open until nine tonight.",
+        "Could you remind me what time the meeting starts tomorrow?",
+        "Most of the photos on this website were taken by students.",
+        "My sister has been learning to play the piano since March.",
+        "You need to fill in this form before you see the doctor.",
+        "The price of fresh vegetables went up again this month.",
+        "If you have any questions, please send an email to the office."
+      ]
+    },
+    {
+      "id": "reading-1",
+      "type": "interactive_reading",
+      "passage": "Every spring and autumn, billions of birds travel between their summer and winter homes. Many people are {surprised|pleased|bored} to learn that most small songbirds make this journey at {night|noon|home}. Flying in the dark has several {advantages|accidents|opinions}. The air at night is usually cooler and {calmer|louder|drier}, so the birds are less likely to overheat. There are also fewer hawks and other {predators|passengers|neighbors} in the night sky. During the day, the birds rest and {feed|fly|sing} so that they are ready for the next part of the trip.",
+      "missing_sentence": {
+        "answer": "To find their way in the dark, many songbirds use the stars and the Earth's magnetic field.",
+        "wrong": [
+          "Most birds build their nests in tall trees near rivers and lakes.",
+          "Some people keep small songbirds as pets in their homes."
+        ]
+      },
+      "rest": "However, night travel also brings a modern danger. Bright lights in cities can confuse the birds and pull them away from their route. Many of them then fly into windows or circle buildings until they are too tired to continue. To help, some cities ask the owners of tall buildings to turn off unnecessary lights during the migration seasons. Scientists also use weather radar to predict the nights when the largest numbers of birds will fly, so that warnings can go out in time.",
+      "highlight": [
+        {
+          "question": "What do the birds do during the day?",
+          "answer": "rest and feed so that they are ready for the next part of the trip"
+        },
+        {
+          "question": "What do some cities ask building owners to do?",
+          "answer": "turn off unnecessary lights during the migration seasons"
+        }
+      ],
+      "main_idea": {
+        "answer": "Many birds migrate at night for good reasons, but city lights put them in danger.",
+        "wrong": [
+          "Hawks are the most dangerous animals for small songbirds.",
+          "Scientists use radar to study the weather in large cities.",
+          "Birds prefer to live in cities because of the bright lights."
+        ]
+      },
+      "best_title": {
+        "answer": "Night Flights and City Lights",
+        "wrong": [
+          "How to Feed Birds in Winter",
+          "The Life of a Hawk",
+          "Why Cities Build Taller Towers"
+        ]
+      }
+    },
+    {
+      "id": "reading-2",
+      "type": "interactive_reading",
+      "passage": "When Mr. Haddad's cat did not come home for two days, he {knocked|slept|danced} on every door in his building. Nobody had {seen|asked|told} her. On the third day, Nadia, the girl who lived {upstairs|outside|abroad}, offered to help. She {drew|bought|lost} a picture of the cat and made twenty copies at the library. Together they {put|sold|read} the posters on lampposts and in shop windows around the {neighborhood|kitchen|country}.",
+      "missing_sentence": {
+        "answer": "For a week, nobody called, and Mr. Haddad began to lose hope.",
+        "wrong": [
+          "Nadia's favorite subject at school was mathematics.",
+          "The library was closed on Sundays during the summer."
+        ]
+      },
+      "rest": "Then, one rainy evening, his phone rang. A woman who lived two streets away said that a gray cat had been sleeping in her garage. Mr. Haddad and Nadia ran there without umbrellas. The cat was thin and dirty, but she knew him at once and jumped into his arms. The next morning, Mr. Haddad left a box of homemade cookies outside Nadia's door with a note that said, \"From both of us.\"",
+      "highlight": [
+        {
+          "question": "Where had the cat been sleeping?",
+          "answer": "in her garage"
+        },
+        {
+          "question": "What did Mr. Haddad leave outside Nadia's door?",
+          "answer": "a box of homemade cookies"
+        }
+      ],
+      "main_idea": {
+        "answer": "With the help of a young neighbor, a man finds his lost cat.",
+        "wrong": [
+          "A girl learns how to make posters at the library.",
+          "A man decides to buy a new cat after his old one leaves.",
+          "A woman finds a cat in her garage and keeps it."
+        ]
+      },
+      "best_title": {
+        "answer": "The Cat Who Came Home",
+        "wrong": [
+          "Cookies for a Rainy Day",
+          "A Busy Day at the Library",
+          "How to Build a Garage"
+        ]
+      }
+    },
+    {
+      "id": "listening-1",
+      "type": "interactive_listening",
+      "partner": "professor",
+      "scenario": "You are a student in an introduction to psychology course. For your final project, you want to survey other students about how they use social media while they study. Before you can send out a survey, you need your professor's approval. You go to your professor's office hours on Tuesday afternoon to ask about it.",
+      "complete": [
+        { "question": "What do you want to ask students about?", "sentence": "You want to survey students about ___.", "answer": "how they use social media while they study" },
+        { "question": "What do you need before you send out the survey?", "sentence": "Before you send out the survey, you need ___.", "answer": "your professor's approval" },
+        { "question": "When do you visit your professor?", "sentence": "You visit your professor during ___.", "answer": "office hours on Tuesday afternoon" }
+      ],
+      "conversation": [
+        {
+          "you": {
+            "answer": "Good afternoon, Professor Kim. Do you have a moment to talk about my final project?",
+            "wrong": [
+              "Good afternoon, Professor Kim. I'm here to ask about my grade on the midterm.",
+              "Hey Kim, got a sec? Need to talk project stuff."
+            ]
+          }
+        },
+        { "partner": "Sure, have a seat. What are you planning to do?" },
+        {
+          "you": {
+            "answer": "I'd like to survey students about how they use social media while they study.",
+            "wrong": [
+              "I'd like to interview teachers about their favorite books.",
+              "I'm planning to write a paper about the history of the internet."
+            ]
+          }
+        },
+        { "partner": "That's an interesting topic. How many students do you want to survey?" },
+        {
+          "you": {
+            "answer": "I was hoping to get answers from about a hundred students.",
+            "wrong": [
+              "About a hundred professors, if that's possible.",
+              "I already sent the survey to a hundred students last week."
+            ]
+          }
+        },
+        { "partner": "That's a good number. But a survey of students needs approval from the university's ethics office first, and that usually takes about two weeks." },
+        {
+          "you": {
+            "answer": "Two weeks? Then I should apply soon. What do I need to send them?",
+            "wrong": [
+              "Great, so I can start the survey tomorrow, then.",
+              "Two weeks is fine. I'll apply after the project is due."
+            ]
+          }
+        },
+        { "partner": "Just a short form that lists your questions and explains how you'll protect the students' privacy. I can check it before you submit it." },
+        {
+          "you": {
+            "answer": "That would be really helpful. Could I send you a draft by Friday?",
+            "wrong": [
+              "No, thanks. I'd rather you didn't see my questions.",
+              "That would be really helpful. Could you write the form for me?"
+            ]
+          }
+        },
+        { "partner": "Friday is fine. Email it to me, and I'll reply over the weekend." },
+        {
+          "you": {
+            "answer": "Thank you, Professor Kim. I'll email you the draft by Friday.",
+            "wrong": [
+              "Thanks. I'll bring the draft to your office next month.",
+              "Thank you. I'll start sending the survey on Monday."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "listening-2",
+      "type": "interactive_listening",
+      "partner": "student2",
+      "scenario": "Your classmate Priya wanted to take a statistics course next semester, but she missed the registration deadline, and now the course is full. Priya needs the course to finish her major on time. You took the same course last year. You meet Priya at the library café to talk about what she can do.",
+      "complete": [
+        { "question": "What did Priya miss?", "sentence": "Priya missed the ___ for the statistics course.", "answer": "registration deadline" },
+        { "question": "Why does Priya need the course?", "sentence": "Priya needs the course to ___.", "answer": "finish her major on time" },
+        { "question": "When did you take the same course?", "sentence": "You took the same course ___.", "answer": "last year" }
+      ],
+      "conversation": [
+        { "partner": "Hi! Thanks for meeting me. I'm kind of panicking about next semester." },
+        {
+          "you": {
+            "answer": "Hi, Priya. Is this about the statistics course?",
+            "wrong": [
+              "Hi, Priya. Congratulations on getting into the statistics course!",
+              "Good afternoon. Please describe the nature of your concern."
+            ]
+          }
+        },
+        { "partner": "Yes. I forgot about the deadline, and now the course is full. If I don't take it in the spring, I'll graduate a semester late." },
+        {
+          "you": {
+            "answer": "Have you asked the department about a waiting list?",
+            "wrong": [
+              "Have you asked the library about a waiting list?",
+              "Why don't you just graduate a semester late, then?"
+            ]
+          }
+        },
+        { "partner": "I added my name yesterday, but I'm number fifteen on the list." },
+        {
+          "you": {
+            "answer": "When I took it, quite a few people dropped the course in the first week.",
+            "wrong": [
+              "When she took it, quite a few people dropped the course in the first week.",
+              "Fifteen? That's great. You'll definitely get in tomorrow."
+            ]
+          }
+        },
+        { "partner": "Really? That makes me feel a bit better. Is there anything else I can do?" },
+        {
+          "you": {
+            "answer": "You could email the professor and explain that you need the course to graduate on time.",
+            "wrong": [
+              "You could email the professor and ask for a better grade.",
+              "You could ask me to take the course for you."
+            ]
+          }
+        },
+        { "partner": "Good idea. Should I also go to the first class, even though I'm not registered?" },
+        {
+          "you": {
+            "answer": "Yes, I think so. It shows the professor that you're serious about the course.",
+            "wrong": [
+              "No, the first class is only for students who passed the final exam.",
+              "Yes, and you should ask the professor for last year's exam answers."
+            ]
+          }
+        },
+        { "partner": "Okay, I'll write the email tonight and go to the first class. Thanks so much." },
+        {
+          "you": {
+            "answer": "No problem. I can lend you my notes from last year, too.",
+            "wrong": [
+              "No problem. I can lend you my notes from next year, too.",
+              "You're welcome. Good luck with your chemistry exam."
+            ]
+          }
+        }
+      ]
+    },
+    { "id": "photo-1", "type": "write_photo", "photo": "nets.jpg" },
+    { "id": "photo-2", "type": "write_photo", "photo": "shoe-repair.jpg" },
+    { "id": "photo-3", "type": "write_photo", "photo": "rice.jpg" },
+    {
+      "id": "iw",
+      "type": "interactive_writing",
+      "prompt": "Describe a trip that did not go as you planned. Where were you going, what went wrong, and how did you deal with the problem?",
+      "follow_up": "Some people like to plan every part of a trip, while others prefer to decide things as they go. Which approach do you think leads to a better trip? Explain your answer."
+    },
+    { "id": "speak-photo", "type": "speak_photo", "photo": "yoga.jpg" },
+    {
+      "id": "read-speak",
+      "type": "read_then_speak",
+      "prompt": "Talk about a holiday or celebration that is important in your country.",
+      "bullets": [
+        "What is the celebration?",
+        "How do people prepare for it and celebrate it?",
+        "What does it mean to you?"
+      ]
+    },
+    {
+      "id": "interview",
+      "type": "interactive_speaking",
+      "topics": [
+        {
+          "topic": "Shopping",
+          "questions": [
+            "I'd like to talk with you about shopping. Do you prefer to shop online or in stores? Why?",
+            "I see. Tell me about something that you bought recently and are happy with.",
+            "Interesting. Some people say that online shopping is bad for small local shops. Do you agree? Explain your answer."
+          ]
+        },
+        {
+          "topic": "Exercise",
+          "questions": [
+            "Thanks. Now let's change topics and talk about exercise. What kind of exercise or physical activity do you do in a normal week?",
+            "I see. What makes it hard for some people to exercise regularly?",
+            "Interesting. Should companies give their employees time during the workday to exercise? Why or why not?",
+            "Thanks. One last question. How are people's exercise habits today different from when your parents were young?"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writing-sample",
+      "type": "writing_sample",
+      "prompt": "Many companies now let employees work from home for part of the week. Is this a good change for workers? Give reasons and examples for your answer."
+    },
+    {
+      "id": "speaking-sample",
+      "type": "speaking_sample",
+      "prompt": "Some people say that modern technology makes our lives more stressful, not easier. Do you agree or disagree? Explain your opinion with examples from your own life."
+    }
+  ],
+  "photos": {
+    "nets.jpg": {
+      "title": "Fishermen mending their nets, Essaouira, 2008.jpg",
+      "author": "DimiTalen",
+      "license": "CC0",
+      "source": "https://commons.wikimedia.org/wiki/File:Fishermen_mending_their_nets,_Essaouira,_2008.jpg"
+    },
+    "shoe-repair.jpg": {
+      "title": "Shoe cobbler 2026.jpg",
+      "author": "Jagaesar",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Shoe_cobbler_2026.jpg"
+    },
+    "rice.jpg": {
+      "title": "Man harvesting rice in Don Det, Laos.jpg",
+      "author": "Basile Morin",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Man_harvesting_rice_in_Don_Det,_Laos.jpg"
+    },
+    "yoga.jpg": {
+      "title": "Yoga in Bryant Park (01194).jpg",
+      "author": "Rhododendrites",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Yoga_in_Bryant_Park_(01194).jpg"
+    }
+  },
+  "sources": [
+    {
+      "about": "Task types, counts, order and rules",
+      "url": "https://englishtest-static.duolingo.com/media/resources/Questions%20Guide%202026.pdf"
+    },
+    {
+      "about": "complete-1: a gas from broken onion cells irritates the eyes, and chilling slows it",
+      "url": "https://www.npr.org/sections/thesalt/2016/06/22/482032913/the-science-of-why-onions-make-us-cry"
+    },
+    {
+      "about": "reading-1: most songbirds migrate at night, for cooler and calmer air, fewer predators and the stars",
+      "url": "https://www.allaboutbirds.org/news/the-basics-how-why-and-where-of-bird-migration/"
+    },
+    {
+      "about": "reading-1: Lights Out programs ask building owners to turn off lights during migration",
+      "url": "https://www.audubon.org/lights-out"
+    },
+    {
+      "about": "reading-1: weather radar forecasts the nights of heavy migration",
+      "url": "https://birdcast.org/for-meteorologists/"
+    }
+  ]
+}

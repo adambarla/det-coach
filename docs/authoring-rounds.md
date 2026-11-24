@@ -12,6 +12,13 @@ The app adds the official times. A round never sets times.
   attribution entry for `round.json`.
 - **Choose clear photos.** A good photo shows people who do something, in a place
   that has detail to describe. Avoid text in the photo, famous people and brands.
+- **Use real photos.** Do not use photos that a computer made (AI images). The
+  official test uses real photos.
+- **Do not repeat a round.** Use new topics, prompts, words, sentences and photos.
+  `det-coach check` finds text and photos that another round already uses. It does not
+  find a topic in new words, so check the topics of the other rounds yourself.
+- **Give sources for facts.** A reading or listening text that states facts must be
+  correct. Add the pages that you used to `sources` in `round.json`.
 - **Use everyday topics.** Study, work, travel, technology, health, environment,
   free time. A prompt asks for an experience or an opinion that every adult can
   give.
@@ -21,8 +28,8 @@ The app adds the official times. A round never sets times.
 1. Make the folder and copy a round as a start.
 
    ```bash
-   mkdir -p rounds/round-04/photos
-   cp rounds/round-01/round.json rounds/round-04/
+   mkdir -p rounds/round-05/photos
+   cp rounds/round-01/round.json rounds/round-05/
    ```
 
 2. Change `id` to the folder name and give a `title`.
@@ -30,7 +37,7 @@ The app adds the official times. A round never sets times.
 3. Find photos on [Wikimedia Commons](https://commons.wikimedia.org) and download them.
 
    ```bash
-   uv run det-coach fetch-photo round-04 "File:Example photo.jpg" --name cafe.jpg
+   uv run det-coach fetch-photo round-05 "File:Example photo.jpg" --name cafe.jpg
    ```
 
    Add the printed entry to `photos` in `round.json`.
@@ -123,7 +130,8 @@ The answers of `highlight` are words copied from the full text.
 ### Interactive Listening
 
 The narrator reads `scenario`. The user completes 3 or 4 `complete` sentences about
-the scenario, then talks with the `partner`. A `you` turn is a choice of replies
+the scenario. As on the official screen, give each sentence a `question` that the
+app shows above it. Then the user talks with the `partner`. A `you` turn is a choice of replies
 (5 or 6 of them in a conversation). Wrong replies do not fit the scenario, do not
 match what the partner said, use the wrong words or pronouns, or are too formal or
 too informal. The app adds the summary task after the conversation.
@@ -132,7 +140,7 @@ too informal. The app adds the summary task after the conversation.
 {
   "id": "listening-1", "type": "interactive_listening", "partner": "professor",
   "scenario": "You are a student in a biology course. You missed last week's lab ...",
-  "complete": [ { "sentence": "Your lab report is due ___.", "answer": "next Monday" } ],
+  "complete": [ { "question": "When is your lab report due?", "sentence": "Your lab report is due ___.", "answer": "next Monday" } ],
   "conversation": [
     { "you": { "answer": "Hi, Professor Lee. Do you have a few minutes?", "wrong": ["Hey, what's up?", "..."] } },
     { "partner": "Of course. Come in." }
@@ -144,14 +152,15 @@ too informal. The app adds the summary task after the conversation.
 
 ```json
 {
-  "id": "round-04",
+  "id": "round-05",
   "title": "Cities, sleep and teamwork",
   "tasks": [
     { "id": "photo-1", "type": "write_photo", "photo": "cafe.jpg" }
   ],
   "photos": {
     "cafe.jpg": { "title": "...", "author": "...", "license": "CC BY 4.0", "source": "https://commons.wikimedia.org/wiki/File:..." }
-  }
+  },
+  "sources": ["https://example.org/the-page-with-the-facts"]
 }
 ```
 

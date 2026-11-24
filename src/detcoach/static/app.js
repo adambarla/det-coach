@@ -5,8 +5,10 @@
  * Routes
  *   #/                       home: rounds and past attempts
  *   #/exam/<round>           take a round with the official timings
+ *   #/exam/<round>/<section> take one section of a round (reading, listening, writing, speaking)
  *   #/attempt/<id>           answers, recordings, transcripts and feedback
- *   #/preview/<round>/<step> one exam screen without timers (screenshots, round authors)
+ *   #/preview/<round>/<step>[/<stage>] one exam screen without timers (screenshots, round authors).
+ *     Stages: missing, highlight, idea, title (Interactive Reading), respond (Interactive Listening)
  */
 
 // ---------- small helpers ----------
@@ -70,7 +72,7 @@ function screenTitle(step) {
     case "read_select": return "Is this a real English word?";
     case "fill_blanks": return "Complete the sentence with the correct word";
     case "read_complete": return "Complete the text with the correct words";
-    case "listen_type": return "Type the statement that you hear";
+    case "listen_type": return "Type what you hear";
     case "write_photo": return `Write a description of the image below for ${time}`;
     case "interactive_writing": return step.show_previous ? `Write a follow-up response for ${time}` : `Write about the topic below for ${time}`;
     case "summarize_conversation": return `Write a summary of the conversation ${step.after ? "you just had" : "you heard"}`;
@@ -89,6 +91,7 @@ function prepTitle(step) {
 
 // The words next to the clock while the answer time runs, as on the official screens.
 function answerLabel(step) {
+  if (step.type === "write_photo") return "for this question";
   if (step.skill === "writing") return "to write";
   if (step.skill === "speaking") return "to speak";
   if (step.type === "interactive_reading") return "for 6 questions";
@@ -127,6 +130,7 @@ const ui = {
     this.clock(...this.clockState);
   },
   foot(actions = "", note = "") {
+    gateCheck = null;
     $("#actions").innerHTML = actions;
     $("#note").innerHTML = note;
   },
@@ -148,10 +152,24 @@ const ui = {
   },
 };
 
+// As on the official test, the button stays gray until the screen has an answer.
+// check() says whether it has one. It runs again after each input, click and selection.
+let gateCheck = null;
+function gate(check) {
+  gateCheck = check;
+  updateGate();
+}
+function updateGate() {
+  const b = $("#actions .btn");
+  if (b && gateCheck) b.disabled = !gateCheck();
+}
+for (const ev of ["input", "change", "click", "selectionchange"]) document.addEventListener(ev, () => setTimeout(updateGate));
+
 // Enter presses the main button of the current screen.
 let onEnter = null;
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Enter" || !onEnter || ["TEXTAREA", "SELECT", "BUTTON", "A"].includes(e.target.tagName)) return;
+  if ($("#actions .btn")?.disabled) return;
   e.preventDefault();
   const fn = onEnter;
   onEnter = null;
@@ -179,12 +197,14 @@ function countdown(seconds, label) {
 }
 
 // Show a button and resolve when the user clicks it or presses Enter.
-function waitForButton(actions, note, id = "go") {
+// check: as in gate().
+function waitForButton(actions, note, id = "go", check = null) {
   return new Promise((resolve) => {
     ui.foot(actions, note);
     const go = () => { onEnter = null; resolve(); };
     $(`#${id}`).onclick = go;
     onEnter = go;
+    if (check) gate(check);
   });
 }
 
@@ -327,9 +347,10 @@ function textBox(placeholder = "Your response") {
   return `<textarea id="box" spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off" placeholder="${placeholder}"></textarea>`;
 }
 
-function promptBlock(step) {
+// boxed: as on the speaking screens, a box with the question in bold.
+function promptBlock(step, boxed = false) {
   const bullets = step.bullets.length ? `<ul>${step.bullets.map((b) => `<li>${esc(b)}</li>`).join("")}</ul>` : "";
-  return `<div class="prompt">${esc(step.prompt)}${bullets}</div>`;
+  return boxed ? `<div class="prompt boxed"><b>${esc(step.prompt)}</b>${bullets}</div>` : `<div class="prompt">${esc(step.prompt)}${bullets}</div>`;
 }
 
 function micPanel() {
@@ -338,6 +359,9 @@ function micPanel() {
 
 // Bars that move while a voice plays.
 const WAVE = `<span class="wave">${"<i></i>".repeat(18)}</span>`;
+// The player's wave: many thin bars of uneven height, the same on every load.
+const LONG_WAVE = `<span class="wave">${Array.from({ length: 90 }, (_, i) =>
+  `<i style="height:${18 + Math.round(72 * Math.abs(Math.sin(i * 1.7) * Math.sin(i * 0.31)))}%"></i>`).join("")}</span>`;
 
 // A spoken clip without its text: a speaker and a wave, as the official test shows it.
 function audioBubble(id = "") {
@@ -351,7 +375,7 @@ function writeScreen(step, prev = null) {
   if (step.photo) {
     return `${title}<div class="photo-row"><img class="photo" src="${esc(step.photo)}" alt="">${textBox()}</div>`;
   }
-  if (step.type === "summarize_conversation") return `${title}${textBox()}`;
+  if (step.type === "summarize_conversation") return `${title}${textBox().replace("<textarea", '<textarea class="tall"')}`;
   if (prev) {
     return `<div class="split parts">
       <div class="part done"><div class="part-h"><span class="badge">${ICON.check}</span>${screenTitle(prev.step)}</div>
@@ -365,15 +389,15 @@ function writeScreen(step, prev = null) {
 function speakScreen(step) {
   const [prepT, prepS] = prepTitle(step);
   const title = step.prep ? heading(prepT, prepS) : heading(screenTitle(step));
-  const what = step.photo ? `<img class="photo solo" src="${esc(step.photo)}" alt="">` : promptBlock(step);
-  return `${title}${what}${micPanel()}`;
+  const what = step.photo ? `<img class="photo solo" src="${esc(step.photo)}" alt="">` : promptBlock(step, true);
+  return `${title}${what}<div id="micSlot"></div>`;
 }
 
 // A spoken question or conversation that plays once.
 function listenScreen(step) {
   const speaking = step.type === "interactive_speaking";
   const title = speaking ? heading(screenTitle(step), "The question plays once.") : heading("Listen to the conversation", "It plays once.");
-  return `${title}<div class="talk">${audioBubble("play")}</div>${speaking ? micPanel() : ""}`;
+  return `${title}<div class="talk">${audioBubble("play")}</div>${speaking ? `<div id="micSlot"></div>` : ""}`;
 }
 
 function introChips(group) {
@@ -394,6 +418,11 @@ function introChips(group) {
 
 function introScreen(group) {
   const step = group[0];
+  // The official screen before the conversation.
+  if (step.type === "interactive_speaking") {
+    return `<div class="intro"><div class="icon-big">${ICON.chat}</div>
+      ${heading("Prepare to have a conversation", `You will listen to ${group.length} questions and have ${step.answer} seconds to answer each`)}</div>`;
+  }
   const chip = ([k, v]) => `<div class="chip"><div class="k">${k}</div><div class="v">${v}</div></div>`;
   return `<div class="intro"><div class="icon-big">${ICON[TASK_ICON[step.type]]}</div><h1>${esc(step.name)}</h1>
     <div class="chips">${introChips(group).map(chip).join("")}</div></div>`;
@@ -502,9 +531,10 @@ function firstPart(step) {
 
 // Listen and Complete: an audio player, then one sentence to complete per question.
 function listeningScreen(step) {
-  const items = step.data.complete.map(([a, b], i) => `<li><div class="sentbox">${esc(a)}<input class="line" data-i="${i}" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off">${esc(b)}</div></li>`).join("");
+  const qs = step.data.questions || [];
+  const items = step.data.complete.map(([a, b], i) => `<li>${qs[i] ? `<div class="lcq">${esc(qs[i])}</div>` : ""}<div class="sentbox">${esc(a)}<input class="line" data-i="${i}" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off">${esc(b)}</div></li>`).join("");
   return `${heading("Listen to the scenario and then answer questions")}
-    <div class="player" id="player"><button class="pbtn" id="play" type="button">${ICON.play}</button>${WAVE}</div><ol class="lc">${items}</ol>`;
+    <div class="player" id="player"><button class="pbtn" id="play" type="button">${ICON.play}</button>${LONG_WAVE}</div><ol class="lc">${items}</ol>`;
 }
 
 // ---------- the exam ----------
@@ -514,10 +544,14 @@ window.addEventListener("beforeunload", (e) => {
   if (activeExam) e.preventDefault();
 });
 
+const SECTION_NAMES = { reading: "Reading", listening: "Listening", writing: "Writing", speaking: "Speaking" };
+
 class Exam {
-  constructor(round) {
+  constructor(round, section = "") {
     this.round = round;
-    this.steps = round.steps;
+    this.section = SECTION_NAMES[section] ? section : "";
+    this.steps = this.section ? round.steps.filter((s) => s.section === this.section) : round.steps;
+    if (!this.steps.length) throw new Error(`This round has no ${section} tasks.`);
     this.answers = {};
     this.attemptId = null;
     this.hash = location.hash;
@@ -534,9 +568,12 @@ class Exam {
     ui.reset();
     const tasks = [];
     this.steps.forEach((s, i) => { if (i === 0 || s.task !== this.steps[i - 1].task) tasks.push([s, i]); });
+    const minutes = this.section ? this.round.sections[this.section].minutes : this.round.minutes;
+    const needsMic = this.steps.some((s) => s.skill === "speaking");
     ui.exam(`<h1>${esc(this.round.title)}</h1>
-      <p class="muted">${plural(this.steps.length, "question")} · ${this.round.minutes} min</p>
-      <div class="mic" style="margin:28px 0 18px">
+      <p class="muted">${this.section ? `${SECTION_NAMES[this.section]} only · ` : ""}${plural(this.steps.length, "question")} · about ${minutes} min</p>
+      ${needsMic ? "" : `<p>No microphone needed.</p>`}
+      <div class="mic" style="margin:28px 0 18px${needsMic ? "" : ";display:none"}">
         <div class="state" id="micState">${ICON.mic.replace("<svg", '<svg width="28" height="28"')}</div>
         <canvas class="meter" id="meter"></canvas>
         <div id="micHint"></div>
@@ -544,6 +581,10 @@ class Exam {
       <details class="adv"><summary>Start from a later task</summary>
         <p style="margin-top:12px"><select id="from">${tasks.map(([s, i]) => `<option value="${i}">${i + 1}. ${esc(s.name)}</option>`).join("")}</select></p>
       </details>`);
+    if (!needsMic) {
+      await waitForButton(`<button class="btn ok" id="go">Begin</button>`);
+      return Number($("#from").value);
+    }
     for (;;) {
       await waitForButton(`<button class="btn" id="go">Allow microphone</button>`, "");
       try {
@@ -562,7 +603,7 @@ class Exam {
   async run() {
     const from = await this.setup();
     activeExam = this;
-    this.attemptId = (await api.post("/api/attempts", { round: this.round.id })).id;
+    this.attemptId = (await api.post("/api/attempts", { round: this.round.id, section: this.section })).id;
     for (let i = from; i < this.steps.length; i++) {
       const step = this.steps[i];
       if (i === from || step.type !== this.steps[i - 1].type) {
@@ -612,10 +653,10 @@ class Exam {
     const values = wireGaps($(".gaptext"));
     $("input.cell")?.focus();
     // Enter submits one sentence, but not a whole paragraph by accident.
-    const go = `<button class="btn" id="go">Continue</button>`;
+    const go = `<button class="btn" id="go">Continue</button>`, typed = () => values().some(Boolean);
     const used = await this.timed(step, answerLabel(step), () => (step.type === "fill_blanks"
-      ? waitForButton(go)
-      : new Promise((done) => { ui.foot(go); $("#go").onclick = done; })));
+      ? waitForButton(go, "", "go", typed)
+      : new Promise((done) => { ui.foot(go); $("#go").onclick = done; gate(typed); })));
     await this.save(step, { missing: values() }, "application/json", used);
   }
 
@@ -641,6 +682,7 @@ class Exam {
       return new Promise((done) => {
         ui.foot(`<button class="btn" id="skip">Continue</button>`);
         $("#skip").onclick = done;
+        gate(() => $("#box").value.trim());
       });
     });
     await this.save(step, { text: $("#box").value, plays: 3 - plays }, "application/json", used);
@@ -649,7 +691,7 @@ class Exam {
   async reading(step) {
     const d = step.data, ans = { choices: [], missing: "", highlight: ["", ""], idea: "", title: "" };
     const draft = setInterval(() => this.post(step, ans, "application/json", false).catch(() => {}), 5000);
-    const next = () => waitForButton(`<button class="btn" id="go">Continue</button>`);
+    const next = (check) => waitForButton(`<button class="btn" id="go">Continue</button>`, "", "go", check);
     const full = esc(step.key.full_text);
     const used = await this.timed(step, answerLabel(step), async () => {
       ui.exam(readingWordsScreen(step), true);
@@ -659,7 +701,7 @@ class Exam {
         $(`.nb[data-i="${i}"] .w`).textContent = s.value;
         $(`.nb[data-i="${i}"]`).classList.toggle("on", !!s.value);
       }));
-      await next();
+      await next(() => picks.some((x) => x.value));
       ans.choices = picks.map((x) => x.value);
 
       const choice = options(d.missing_options, (v) => {
@@ -669,7 +711,7 @@ class Exam {
       ui.exam(readingScreen(`${firstPart(step)} <span class="blank" id="blank"></span> ${esc(d.rest)}`,
         "Select the best sentence to complete the passage", choice.html), true);
       choice.wire();
-      await next();
+      await next(choice.get);
       ans.missing = choice.get();
 
       // One listener for both questions: a selection always answers the question on screen.
@@ -688,7 +730,7 @@ class Exam {
         ui.exam(readingScreen(full, "Highlight text in the passage to answer the question below",
           `<p class="q">${esc(d.highlight[q])}</p><div class="hlbox" id="mark">Click and drag to highlight text</div>`), true);
         $("#text").classList.add("hl");
-        await next();
+        await next(() => ans.highlight[q]);
       }
       document.removeEventListener("selectionchange", track);
       window.getSelection().removeAllRanges();
@@ -697,7 +739,7 @@ class Exam {
         const pick = options(list, (v) => (ans[key] = v));
         ui.exam(readingScreen(full, title, pick.html), true);
         pick.wire();
-        await next();
+        await next(pick.get);
       }
     });
     clearInterval(draft);
@@ -721,9 +763,9 @@ class Exam {
       const inputs = [...document.querySelectorAll(".lc .line")];
       inputs.forEach((x, i) => (x.oninput = () => (ans.complete[i] = x.value)));
       $("#play").click();
-      await waitForButton(`<button class="btn" id="go">Continue</button>`);
+      await waitForButton(`<button class="btn" id="go">Continue</button>`, "", "go", () => inputs.some((x) => x.value.trim()));
 
-      ui.exam(`${heading("Participate in a conversation about this scenario", "Listen closely! Audio clips only play once.")}
+      ui.exam(`${heading("Participate in a conversation about this scenario")}<p class="lead">Listen closely! Audio clips only play once.</p>
         <div class="chat" id="chat"></div><div id="choose"></div>`);
       const say = (who, html) => $("#chat").insertAdjacentHTML("beforeend", `<div class="bubble ${who}">${html}</div>`);
       let n = 0;
@@ -742,6 +784,7 @@ class Exam {
         await new Promise((done) => {
           ui.foot(`<button class="btn" id="go">Continue</button>`);
           $("#go").onclick = () => pick.get() && done();
+          gate(pick.get);
         });
         ans.turns[n++] = pick.get();
         const ok = pick.get() === right;
@@ -789,6 +832,7 @@ class Exam {
     const answer = countdown(step.answer, answerLabel(step));
     ui.foot(`<button class="btn" id="skip">Continue</button>`);
     $("#skip").onclick = answer.skip;
+    gate(() => box.value.trim());
     const used = await answer;
     clearInterval(draft);
     box.disabled = true;
@@ -806,7 +850,6 @@ class Exam {
       ui.exam(speakScreen(step));
     }
     if (step.prep) {
-      $("#micState").textContent = "Not recording yet";
       const prep = countdown(step.prep, "to prepare");
       ui.foot(`<button class="btn" id="skip">${ICON.mic}Record now</button>`);
       $("#skip").onclick = prep.skip;
@@ -814,6 +857,7 @@ class Exam {
       setHeading(screenTitle(step));
     }
     Mic.beep();
+    $("#micSlot").innerHTML = micPanel();
     $("#micState").innerHTML = `<span class="dot"></span> Recording`;
     $("#mic").classList.add("rec");
     const stopMeter = Mic.meter($("#meter"));
@@ -880,12 +924,14 @@ async function showHome() {
         <h3>${esc(r.title)}</h3>
         <div class="meta">${plural(r.steps, "question")} · about ${r.minutes} min</div>
         <a class="btn small" href="#/exam/${esc(r.id)}">Start</a>
+        ${Object.keys(r.sections).length > 1 ? `<div class="sections"><span class="lbl">Or one section</span>${Object.entries(r.sections).map(([k, v]) => `
+          <a href="#/exam/${esc(r.id)}/${k}" title="${plural(v.steps, "question")} · about ${v.minutes} min">${SECTION_NAMES[k]}<span>${v.minutes} min</span></a>`).join("")}</div>` : ""}
       </section>`).join("") || `<section class="box empty">No rounds found in rounds/.</section>`}
     </div>
     <div class="section-h">Your attempts</div>
     <section class="box">${attempts.map((a) => `
       <a class="row" href="#/attempt/${esc(a.id)}">
-        <span class="grow"><span class="id">${esc(titles[a.round] || a.round)}</span><br><span class="muted">${when(a.started)} · ${plural(a.steps, "answer")}</span></span>
+        <span class="grow"><span class="id">${esc(titles[a.round] || a.round)}${a.section ? ` · ${SECTION_NAMES[a.section] || esc(a.section)}` : ""}</span><br><span class="muted">${when(a.started)} · ${plural(a.steps, "answer")}</span></span>
         <span class="pill ${a.status}">${statusText[a.status]}</span>
       </a>`).join("") || `<div class="empty">No attempts yet. Start a round above.</div>`}
     </section>
@@ -975,7 +1021,7 @@ function resultsPage(d) {
   const answered = round.steps.filter((s) => manifest.steps[s.id]);
   const shown = round.steps.filter((s) => manifest.steps[s.id] || d.answers[s.id] != null);
   let head = `<h1>${esc(round.title)}</h1>
-    <div class="muted">${when(manifest.started)} · ${plural(answered.length, "answer")} of ${round.steps.length}</div>`;
+    <div class="muted">${manifest.section ? `${SECTION_NAMES[manifest.section] || esc(manifest.section)} only · ` : ""}${when(manifest.started)} · ${plural(answered.length, "answer")} of ${round.steps.filter((s) => !manifest.section || s.section === manifest.section).length}</div>`;
   const share = (k) => (d.skills?.[k] ? `<div class="score"><div class="k">${k[0].toUpperCase() + k.slice(1)} points</div><div class="v">${Math.round(d.skills[k].share * 100)}%</div></div>` : "");
   const shares = share("reading") + share("listening");
   if (fb) {
@@ -1024,7 +1070,22 @@ async function showAttempt(id, token) {
 
 // ---------- preview: one exam screen, frozen, for screenshots and round authors ----------
 
-async function showPreview(roundId, stepId) {
+// The later screens of Interactive Reading and Interactive Listening, for the preview route.
+function laterScreen(step, stage) {
+  const d = step.data, full = esc(step.key.full_text);
+  const pick = (list) => options(list).html;
+  switch (`${step.type}/${stage}`) {
+    case "interactive_reading/missing": return readingScreen(`${firstPart(step)} <span class="blank"></span> ${esc(d.rest)}`, "Select the best sentence to complete the passage", pick(d.missing_options));
+    case "interactive_reading/highlight": return readingScreen(full, "Highlight text in the passage to answer the question below", `<p class="q">${esc(d.highlight[0])}</p><div class="hlbox">Click and drag to highlight text</div>`);
+    case "interactive_reading/idea": return readingScreen(full, "Select the idea that is expressed in the passage", pick(d.idea_options));
+    case "interactive_reading/title": return readingScreen(full, "Select the best title for the passage", pick(d.title_options));
+    case "interactive_listening/respond": return `${heading("Participate in a conversation about this scenario")}<p class="lead">Listen closely! Audio clips only play once.</p>
+      <div class="chat"><div class="bubble them">${audioBubble().replace(" talking", "")}</div></div><div id="choose"><h3 class="qtitle">Select the best response</h3>${pick(d.turns.find((t) => t.options).options)}</div>`;
+  }
+  throw new Error(`No stage ${stage} for ${step.id}`);
+}
+
+async function showPreview(roundId, stepId, stage = "") {
   ui.reset();
   const round = await api.get(`/api/rounds/${roundId}`);
   const step = round.steps.find((s) => s.id === stepId);
@@ -1035,7 +1096,8 @@ async function showPreview(roundId, stepId) {
     listen_type: listenTypeScreen, interactive_reading: readingWordsScreen,
     interactive_listening: listeningScreen, interactive_speaking: listenScreen,
   }[step.type];
-  if (screen) ui.exam(screen(step), step.type === "interactive_reading");
+  if (stage) ui.exam(laterScreen(step, stage), step.type === "interactive_reading");
+  else if (screen) ui.exam(screen(step), step.type === "interactive_reading");
   else if (step.skill === "speaking") ui.exam(speakScreen(step));
   else ui.exam(writeScreen(step, prev ? { step: prev, text: "(your answer to part 1)" } : null), !!step.photo || !!prev);
   wireGaps($("#app"));
@@ -1043,7 +1105,7 @@ async function showPreview(roundId, stepId) {
   ui.clock(step.prep ? "to prepare" : answerLabel(step), t, t);
   if (step.type === "read_select") ui.foot("");
   else if (step.skill === "speaking" && step.prep) ui.foot(`<button class="btn">${ICON.mic}Record now</button>`);
-  else ui.foot(`<button class="btn">Continue</button>`);
+  else ui.foot(`<button class="btn" disabled>Continue</button>`);
 }
 
 // ---------- router ----------
@@ -1052,11 +1114,11 @@ let routeToken = 0;
 
 async function route() {
   const token = ++routeToken;
-  const [, view, a, b] = location.hash.replace(/^#\/?/, "/").split("/").map(decodeURIComponent);
+  const [, view, a, b, c] = location.hash.replace(/^#\/?/, "/").split("/").map(decodeURIComponent);
   try {
-    if (view === "exam" && a) await new Exam(await api.get(`/api/rounds/${a}`)).run();
+    if (view === "exam" && a) await new Exam(await api.get(`/api/rounds/${a}`), b).run();
     else if (view === "attempt" && a) await showAttempt(a, token);
-    else if (view === "preview" && a && b) await showPreview(a, b);
+    else if (view === "preview" && a && b) await showPreview(a, b, c);
     else await showHome();
   } catch (e) {
     activeExam = null;

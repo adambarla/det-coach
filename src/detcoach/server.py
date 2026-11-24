@@ -10,7 +10,7 @@ Routes
     GET  /api/attempts                      attempt summaries
     GET  /api/attempts/<id>                 manifest, answers, transcripts and feedback
     GET  /attempts/<id>/recordings/<file>   a recording, for playback on the results page
-    POST /api/attempts                      {"round": id} -> {"id": attempt id}
+    POST /api/attempts                      {"round": id, "section"?: name} -> {"id": attempt id}
     POST /api/attempts/<id>/steps/<step>    body = text/plain answer or audio/* recording
     POST /api/attempts/<id>/finish
 """
@@ -27,6 +27,7 @@ from urllib.parse import parse_qs, urlparse
 from . import feedback, score, speech
 from .attempts import Attempts
 from .rounds import FILE_NAME, Round, RoundError, list_rounds, load_round
+from .tasks import SECTIONS
 
 STATIC = Path(__file__).parent / "static"
 MAX_UPLOAD = 50 * 1024 * 1024
@@ -204,9 +205,13 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
             try:
                 match parts:
                     case ["api", "attempts"]:
-                        rnd = app.round(json.loads(body or b"{}").get("round", ""))
+                        req = json.loads(body or b"{}")
+                        rnd = app.round(req.get("round", ""))
+                        section = req.get("section", "")
+                        if section and section not in SECTIONS:
+                            return self._error(400, "unknown section")
                         speech.prerender(app.cache, rnd)
-                        self._json({"id": app.attempts.create(rnd.id)})
+                        self._json({"id": app.attempts.create(rnd.id, section)})
                     case ["api", "attempts", aid, "steps", sid]:
                         rnd = app.round(app.attempts.manifest(aid)["round"])
                         if sid not in {s.id for s in rnd.steps}:

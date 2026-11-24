@@ -164,6 +164,8 @@ def check_interactive_listening(task: dict) -> list[str]:
         for c in complete
     ):
         p.append("each 'complete' item needs a 'sentence' with one ___ and an 'answer'")
+    elif not all(isinstance(c.get("question", ""), str) for c in complete):
+        p.append("a 'complete' item's 'question' must be text")
     turns = task.get("conversation")
     if not isinstance(turns, list) or not turns:
         return [*p, "needs a 'conversation'"]
@@ -289,7 +291,13 @@ def expand_interactive_listening(task: dict, spec: TaskType, base: dict) -> list
         answer=spec.answer,
         part="Listen and Complete, Listen and Respond",
         listen=listen,
-        data={"complete": complete, "turns": turns, "partner": partner},
+        data={
+            "complete": complete,
+            # The official screen asks a question above each sentence. Optional in a round.
+            "questions": [c.get("question", "") for c in task["complete"]],
+            "turns": turns,
+            "partner": partner,
+        },
         key={"complete": [c["answer"] for c in task["complete"]], "turns": answers},
         **base,
     )
