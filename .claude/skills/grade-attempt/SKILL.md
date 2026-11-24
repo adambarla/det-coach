@@ -5,12 +5,12 @@ description: Grade a det-coach practice attempt and write feedback.json for the 
 
 # Grade an attempt
 
-Follow [docs/grading.md](../../../docs/grading.md) step by step. In short:
+Do not grade in this conversation. This conversation can know the user and their
+earlier rounds, and that knowledge biases a grade. Give the work to the `det-grader`
+subagent, which follows [docs/grading.md](../../../docs/grading.md) and sees only
+the answers.
 
-1. Run `uv run det-coach packet <attempt id or latest>` and read the `packet.md` it prints.
-2. Open every photo that the packet names, and read `rubric/rubric.md`.
-3. Write `attempts/<id>/feedback.json` in the format of docs/grading.md.
-4. Run `uv run det-coach check-feedback <attempt>` until it reports no problems.
-5. Tell the user the two estimates and the top priorities. The app shows the rest.
-
-Be strict and quote the user's exact words in every fix.
+1. Find the attempt id: `uv run det-coach attempts`, or `latest`.
+2. Start the `det-grader` subagent with the prompt "Grade det-coach attempt <id>."
+3. When it returns, run `uv run det-coach check-feedback <id>` yourself.
+4. Tell the user the two estimates and the top priorities. The app shows the rest.

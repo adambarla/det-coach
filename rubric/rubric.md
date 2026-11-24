@@ -91,6 +91,53 @@ The official guide describes these ranges.
 
 Little relevant language, or no answer.
 
+## Calibration
+
+The official scores are higher than a strict reading of the bands above. In a blind
+test, two graders that used only the bands scored 21 real answers about 23 points
+below the scores that Duolingo gave them. The graders agreed with each other and
+ranked the answers correctly, so the error was a constant offset, not noise.
+[docs/calibration.md](../docs/calibration.md) describes the test.
+
+Use these rules to remove the offset:
+
+- **Errors that do not block meaning cost little.** Missing articles, wrong
+  prepositions, small spelling errors and comma splices are normal at 130 to 140.
+- **A short, simple answer that is correct and on task scores well.** Range and
+  development raise the score above 140. Their absence does not pull a clear
+  answer below 125.
+- **Below 100 means that communication breaks down**: fragments, unclear sentences,
+  most of the task missing, or language too limited for the ideas.
+- **Score what the answer shows**, then compare it with the anchors below. Do not
+  lower a band only because you are not sure.
+
+### Anchors
+
+These describe real answers from the *Scoring Guide (2026)*, section 6, with the
+subscore that the test taker received. They are paraphrased. Read section 6 of the
+guide for the full answers.
+
+| Task | Score | What the answer did |
+|---|---|---|
+| Write About the Photo | 140 | Four short, correct sentences that name the scene, the background and one detail. No inference. Two unnatural word choices. |
+| Write About the Photo | 85 | One and a half sentences, cut off. Missing articles, a spelling error and an agreement error. Names two objects only. |
+| Interactive Writing | 150 | Both parts answered in full: clear steps with sequence words, then a cause and effect. A few errors in tense and verb form. |
+| Interactive Writing | 90 | Both parts cut off. Frequent spelling, capitalization and verb form errors, but the story and the point are clear. |
+| Writing Sample | 150 | A clear position developed with several concrete points about one country, with good vocabulary. One agreement error and an unfinished last sentence. |
+| Writing Sample | 85 | Lowercase start, many spelling errors, unclear sentences and a personal example that is cut off. |
+| Speak About the Photo | 145 | About 130 words. Setting, people, clothes and actions, with two inferences. Natural phrases and only small errors. |
+| Speak About the Photo | 85 | Broken sentences with missing verbs and wrong forms. The listener must guess the meaning of several sentences. |
+| Read, Then Speak | 140 | Answers all three questions with a clear main idea, but loosely organized, with fillers and a few unclear phrases. |
+| Read, Then Speak | 65 | Repeats the question, then gives short broken clauses on a technical topic. Many restarts and form errors. Cut off. |
+| Interactive Speaking | 135 | Six direct answers, each with a reason or a real example. Many fillers ("like", "em"), restarts and some small errors. |
+| Interactive Speaking | 90 | Answers are on topic but very short or unclear, with frequent errors in basic verb forms and word order. |
+| Speaking Sample | 145 | Uses the full time. Benefits and disadvantages, each with a personal example. Many fillers ("um", "you know") and some repetition. |
+| Speaking Sample | 80 | Long, but circles one idea with constant restarts, wrong pronouns and verb forms. The main point is clear only in parts. |
+
+Fillers and restarts cost much less than a strict reading suggests: both 135 to 145
+speaking anchors use them often. Range of language and full, relevant answers
+weigh more.
+
 ## Task notes
 
 These notes come from the task descriptions in the official guides.

@@ -3,6 +3,10 @@
 This document is the grading procedure for a coding agent. A person can follow it too.
 The result is `attempts/<id>/feedback.json`. The results page in the app shows it.
 
+Grade in a fresh context: a subagent or a new session that has not seen the user's
+notes or earlier feedback. Earlier grades anchor a new one, and knowledge about the
+user biases it. In Claude Code, the `det-grader` subagent does this.
+
 ## Procedure
 
 1. Make the packet.
@@ -39,8 +43,9 @@ The result is `attempts/<id>/feedback.json`. The results page in the app shows i
 
 ## How to grade
 
-- **Be strict.** The user practises for a real test. A high band that is not
-  earned does not help. When you are not sure between two bands, use the lower one.
+- **Be accurate.** Match the official scores, not a strict reading of the bands.
+  Read the *Calibration* section of the rubric and compare each answer with its
+  anchors. A band that is too low misleads the user as much as one that is too high.
 - **Quote the answer.** Each fix starts with the exact words that the user wrote
   or said (`original`). Then give a better version (`better`) and the rule or
   reason (`why`). Give 2 to 4 fixes for each answer, the most important first.

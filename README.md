@@ -89,7 +89,11 @@ You can also grade by hand: run `det-coach packet` and read `packet.md`.
 
 ### What the feedback can and cannot do
 
-- The score bands are estimates. The real test uses its own scoring models.
+- The score bands are estimates. The real test uses its own scoring models. On 21
+  officially scored answers, the estimates are within about 10 points of the official
+  score. [docs/calibration.md](docs/calibration.md) shows the test.
+- Grading runs in a separate subagent that sees only your answers, so the grade does
+  not depend on what your agent knows about you.
 - Pronunciation is the weakest criterion. The agent reads a transcript and cannot
   hear you. It only uses indirect evidence, such as words that the transcription
   model heard with low confidence.

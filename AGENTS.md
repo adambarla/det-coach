@@ -8,10 +8,17 @@ the answers and writes feedback that the app shows.
 
 | Request | Do this |
 |---|---|
-| "Grade my latest attempt", "give me feedback" | Follow [docs/grading.md](docs/grading.md) |
+| "Grade my latest attempt", "give me feedback" | Follow [docs/grading.md](docs/grading.md) in a fresh subagent or session (see below) |
 | "Make a new round", "more practice questions" | Follow [docs/authoring-rounds.md](docs/authoring-rounds.md) |
 | "Start the practice", "open the app" | Run `uv run det-coach practice` in the background and give the URL |
 | Questions about setup or commands | Answer from the [README](README.md) |
+
+## Grade without bias
+
+A grade must depend only on the answers. Do not grade in a conversation that knows
+the user, their goals or their earlier grades. Start a fresh subagent or session
+that reads only the packet, the photos, the rubric and docs/grading.md. In Claude
+Code, the `det-grader` subagent in `.claude/agents/` does this.
 
 ## Commands
 
