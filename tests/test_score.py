@@ -73,17 +73,22 @@ def test_interactive_listening_adds_a_summary(tmp_path):
         ({"id": "a", "type": "read_select", "words": [{"word": "x", "real": True}]}, "both real"),
         ({"id": "a", "type": "fill_blanks", "sentences": ["No blank."]}, "exactly one"),
         (
-            {"id": "a", "type": "read_complete", "title": "T", "passage": "{A} b. c. d."},
-            "first and last",
+            {
+                "id": "a",
+                "type": "read_complete",
+                "title": "T",
+                "passage": "A b {c} {d} {e} {f} {g}. H.",
+            },
+            "start with 5 words",
         ),
         (
             {
                 "id": "a",
                 "type": "read_complete",
                 "title": "T",
-                "passage": "A. {b} {c} {d} {e} {f}. G.",
+                "passage": "A b c d e. {f} {g} {h} {i} {j}.",
             },
-            "next to each other",
+            "end with a sentence",
         ),
         ({**READING, "highlight": [{"question": "q", "answer": "not there"}] * 2}, "copied"),
         ({"id": "a", "type": "interactive_listening"}, "'partner' must be"),

@@ -3,16 +3,20 @@ import json
 import pytest
 from conftest import REPO, write_round
 
-from detcoach.rounds import RoundError, list_rounds, load_round, repeats
+from detcoach import speech
+from detcoach.rounds import OFFICIAL, RoundError, list_rounds, load_round, repeats
 from detcoach.tasks import TASK_TYPES
+
+# Rounds that ship with the repository. Rounds from the official booklet stay local.
+SHIPPED_TYPES = set(TASK_TYPES) - {"listen_then_speak"}
 
 
 def test_shipped_rounds_are_valid():
-    rounds = list_rounds(REPO / "rounds")
+    rounds = [r for r in list_rounds(REPO / "rounds") if not r.id.startswith(OFFICIAL)]
     assert len(rounds) >= 3
-    # Together the shipped rounds use every task type, and at least one is a full test.
-    assert {s.type for r in rounds for s in r.steps} == set(TASK_TYPES)
-    assert any({s.type for s in r.steps} == set(TASK_TYPES) for r in rounds)
+    # Together the shipped rounds use every 2026 task type, and at least one is a full test.
+    assert {s.type for r in rounds for s in r.steps} == SHIPPED_TYPES
+    assert any({s.type for s in r.steps} == SHIPPED_TYPES for r in rounds)
 
 
 def test_steps_take_times_from_task_types(root):
@@ -98,3 +102,47 @@ def test_repeats_are_found(tmp_path):
     found = repeats(tmp_path / "rounds")  # the prompt, and the photo that both test rounds share
     assert [f.split(" ")[1] for f in found] == ["photo", "prompt"]
     assert all(f.startswith("round-b:") and f.endswith("already in round-a") for f in found)
+
+
+def recorded_round(tmp_path, tasks):
+    folder = write_round(tmp_path, tasks=tasks)
+    (folder / "audio").mkdir()
+    (folder / "audio" / "a.mp3").write_bytes(b"ID3")
+    return load_round(folder)
+
+
+def test_recorded_audio_is_played_instead_of_a_voice(tmp_path):
+    sentences = [{"text": "The bus is late.", "audio": "a.mp3"}, "It rains."]
+    lts = {"id": "lts", "type": "listen_then_speak", "text": "Why?", "audio": "a.mp3"}
+    r = recorded_round(tmp_path, [{"id": "d", "type": "listen_type", "sentences": sentences}, lts])
+    d1, d2, step = r.steps
+    assert (d1.listen[0].text, d1.listen[0].audio, d2.listen[0].audio) == (
+        "The bus is late.",
+        "a.mp3",
+        "",
+    )
+    assert step.listen[0].text == "Why?"
+    assert speech.audio_path(tmp_path, r, step.id) == r.path / "audio" / "a.mp3"
+
+
+def test_missing_recordings_are_reported(tmp_path):
+    task = {"id": "lts", "type": "listen_then_speak", "text": "Why?", "audio": "gone.mp3"}
+    with pytest.raises(RoundError) as e:
+        recorded_round(tmp_path, [task])
+    assert any("gone.mp3" in p for p in e.value.problems)
+
+
+def test_interactive_listening_can_skip_listen_and_complete(tmp_path):
+    shipped = json.loads((REPO / "rounds" / "round-04" / "round.json").read_text())
+    task = next(t for t in shipped["tasks"] if t["type"] == "interactive_listening")
+    task = {k: v for k, v in task.items() if k != "complete"}
+    step = load_round(write_round(tmp_path, tasks=[task])).steps[0]
+    assert step.part == "Listen and Respond"
+    assert step.data.get("complete", []) == []
+
+
+def test_official_rounds_are_not_checked_for_repeats(tmp_path):
+    task = {"id": "ws", "type": "writing_sample", "prompt": "Is homework useful?"}
+    write_round(tmp_path, "round-a", tasks=[task])
+    write_round(tmp_path, "official-01", tasks=[task])
+    assert repeats(tmp_path / "rounds") == []

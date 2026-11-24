@@ -19,3 +19,6 @@ build/
 .DS_Store
 .idea/
 .vscode/
+
+# Rounds made from the official sample booklet are copyrighted (tools/booklet).
+rounds/official-*/

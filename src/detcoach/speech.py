@@ -142,6 +142,8 @@ def _clips(rnd: Round) -> dict[str, list[Line]]:
 def audio_path(cache_dir: Path, rnd: Round, name: str) -> Path | None:
     """Return the cached audio for a step or clip, rendering it first if needed."""
     lines = _clips(rnd).get(name)
+    if lines and len(lines) == 1 and lines[0].audio:  # a recording, not a voice
+        return rnd.path / "audio" / lines[0].audio
     if lines is None or not available():
         return None
     # The name hashes the text and voices, so edits and newly installed voices re-render.

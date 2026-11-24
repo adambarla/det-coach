@@ -68,6 +68,7 @@ const TASK_ICON = {
   interactive_reading: "book", interactive_listening: "ear",
   write_photo: "pen", interactive_writing: "pen", summarize_conversation: "ear", writing_sample: "pen",
   speak_photo: "mic", read_then_speak: "mic", interactive_speaking: "chat", speaking_sample: "mic",
+  listen_then_speak: "ear",
 };
 
 // The titles follow the wording of the official test screens.
@@ -83,12 +84,14 @@ function screenTitle(step) {
     case "summarize_conversation": return `Write a summary of the conversation ${step.after ? "you just had" : "you heard"}`;
     case "writing_sample": return `Write about the topic below for ${time}`;
     case "interactive_speaking": return "Answer the question that you hear";
+    case "listen_then_speak": return `Speak about the question that you heard for ${time}`;
     default: return `Speak about the ${step.photo ? "image" : "topic"} below for ${time}`;
   }
 }
 
 // The title and subtitle of a screen with time to prepare.
 function prepTitle(step) {
+  if (step.type === "listen_then_speak") return ["Listen to the question", `You will have ${duration(step.answer)} to speak`];
   const write = step.skill === "writing";
   return [`Prepare to ${write ? "write" : "speak"} about the ${step.photo ? "image" : "topic"} below`,
     `You will have ${duration(step.answer)} to ${write ? "write" : "speak"}`];
@@ -400,6 +403,11 @@ function speakScreen(step) {
 
 // A spoken question or conversation that plays once.
 function listenScreen(step) {
+  if (step.type === "listen_then_speak") {
+    const [t, sub] = prepTitle(step);
+    return `${heading(t, sub)}<div class="lt"><button class="sq" id="play" type="button">${ICON.speaker}</button>
+      <div class="replays" id="plays">Replays left: 2</div></div><div id="micSlot"></div>`;
+  }
   const speaking = step.type === "interactive_speaking";
   const title = speaking ? heading(screenTitle(step), "The question plays once.") : heading("Listen to the conversation", "It plays once.");
   return `${title}<div class="talk">${audioBubble("play")}</div>${speaking ? `<div id="micSlot"></div>` : ""}`;
@@ -417,6 +425,7 @@ function introChips(group) {
     case "summarize_conversation": return [[step.after ? "Prepare" : "Listen", step.after ? "none" : "once"], ["Write", shortDuration(step.answer)]];
     case "interactive_writing": return [["Prepare", `${step.prep} s`], ["Write", group.map((s) => shortDuration(s.answer)).join(" + ")]];
     case "interactive_speaking": return [["Listen", "once"], ["Speak", `${step.answer} s × ${group.length}`]];
+    case "listen_then_speak": return [["Listen", "up to 3 times"], ["Prepare", `${step.prep} s`], ["Speak", shortDuration(step.answer)]];
   }
   return [["Prepare", step.prep ? `${step.prep} s` : "none"], [step.skill === "writing" ? "Write" : "Speak", shortDuration(step.answer)]];
 }
@@ -542,6 +551,13 @@ function listeningScreen(step) {
     <div class="player" id="player"><button class="pbtn" id="play" type="button">${ICON.play}</button>${LONG_WAVE}</div><ol class="lc">${items}</ol>`;
 }
 
+// Listen and Respond. Without Listen and Complete (the 2025 samples) the scenario is shown.
+function respondScreen(step, body) {
+  const scenario = step.data.complete.length ? "" : `<div class="prompt boxed">${esc(step.listen[0].text)}</div>`;
+  return `${heading("Participate in a conversation about this scenario")}<p class="lead">Listen closely! Audio clips only play once.</p>
+    ${scenario}${body}`;
+}
+
 // ---------- the exam ----------
 
 let activeExam = null;
@@ -665,8 +681,8 @@ class Exam {
     await this.save(step, { missing: values() }, "application/json", used);
   }
 
-  async listenType(step) {
-    ui.exam(listenTypeScreen(step));
+  // Play a step now, and let the #play button replay it up to 2 more times.
+  replays(step) {
     let plays = 3, playing = false;
     const play = async () => {
       if (!plays || playing) return;
@@ -681,8 +697,15 @@ class Exam {
       $("#play").disabled = !plays;
     };
     $("#play").onclick = play;
+    play();
+    return () => 3 - plays;
+  }
+
+  async listenType(step) {
+    ui.exam(listenTypeScreen(step));
+    let plays;
     const used = await this.timed(step, answerLabel(step), () => {
-      play();
+      plays = this.replays(step);
       $("#box").focus();
       return new Promise((done) => {
         ui.foot(`<button class="btn" id="skip">Continue</button>`);
@@ -690,7 +713,7 @@ class Exam {
         gate(() => $("#box").value.trim());
       });
     });
-    await this.save(step, { text: $("#box").value, plays: 3 - plays }, "application/json", used);
+    await this.save(step, { text: $("#box").value, plays: plays() }, "application/json", used);
   }
 
   async reading(step) {
@@ -751,27 +774,31 @@ class Exam {
     await this.save(step, ans, "application/json", used);
   }
 
+  // Listen and Complete: the scenario plays, then the user completes the sentences.
+  async complete(step, ans) {
+    ui.exam(listeningScreen(step));
+    let playing = false;
+    $("#play").onclick = async () => {
+      if (playing) return;
+      playing = true;
+      $("#player").classList.add("talking");
+      await Voice.play(this.round.id, step, 0);
+      playing = false;
+      $("#player")?.classList.remove("talking");
+    };
+    const inputs = [...document.querySelectorAll(".lc .line")];
+    inputs.forEach((x, i) => (x.oninput = () => (ans.complete[i] = x.value)));
+    $("#play").click();
+    await waitForButton(`<button class="btn" id="go">Continue</button>`, "", "go", () => inputs.some((x) => x.value.trim()));
+  }
+
   async listening(step) {
     const d = step.data, ans = { complete: d.complete.map(() => ""), turns: [] };
     const draft = setInterval(() => this.post(step, ans, "application/json", false).catch(() => {}), 5000);
     const used = await this.timed(step, answerLabel(step), async () => {
-      ui.exam(listeningScreen(step));
-      let playing = false;
-      $("#play").onclick = async () => {
-        if (playing) return;
-        playing = true;
-        $("#player").classList.add("talking");
-        await Voice.play(this.round.id, step, 0);
-        playing = false;
-        $("#player")?.classList.remove("talking");
-      };
-      const inputs = [...document.querySelectorAll(".lc .line")];
-      inputs.forEach((x, i) => (x.oninput = () => (ans.complete[i] = x.value)));
-      $("#play").click();
-      await waitForButton(`<button class="btn" id="go">Continue</button>`, "", "go", () => inputs.some((x) => x.value.trim()));
+      if (d.complete.length) await this.complete(step, ans);
 
-      ui.exam(`${heading("Participate in a conversation about this scenario")}<p class="lead">Listen closely! Audio clips only play once.</p>
-        <div class="chat" id="chat"></div><div id="choose"></div>`);
+      ui.exam(respondScreen(step, `<div class="chat" id="chat"></div><div id="choose"></div>`));
       const say = (who, html) => $("#chat").insertAdjacentHTML("beforeend", `<div class="bubble ${who}">${html}</div>`);
       let n = 0;
       for (const turn of d.turns) {
@@ -851,6 +878,9 @@ class Exam {
     if (step.type === "interactive_speaking") {
       ui.exam(listenScreen(step));
       await this.listen(step);
+    } else if (step.type === "listen_then_speak") {
+      ui.exam(listenScreen(step));
+      this.replays(step);
     } else {
       ui.exam(speakScreen(step));
     }
@@ -861,6 +891,8 @@ class Exam {
       await prep;
       setHeading(screenTitle(step));
     }
+    Voice.stop();
+    $(".lt")?.remove();
     Mic.beep();
     $("#micSlot").innerHTML = micPanel();
     $("#micState").innerHTML = `<span class="dot"></span> Recording`;
@@ -971,7 +1003,7 @@ function stepContext(round, step) {
   const parts = [];
   if (step.photo) parts.push(`<img class="thumb" src="${esc(step.photo)}" alt="">${photoCredit(round, step.photo)}`);
   if (step.prompt) parts.push(promptBlock(step));
-  if (step.type === "interactive_speaking") parts.push(`<div class="prompt"><span class="label">The interviewer asked</span><br>${esc(step.listen[0].text)}</div>`);
+  if (step.type === "interactive_speaking" || step.type === "listen_then_speak") parts.push(`<div class="prompt"><span class="label">The ${step.type === "interactive_speaking" ? "interviewer asked" : "question was"}</span><br>${esc(step.listen[0].text)}</div>`);
   if (step.type === "summarize_conversation") {
     parts.push(`<details class="model"><summary>Show the conversation</summary><div>${step.listen.map((l) => `<b>${esc(l.voice)}:</b> ${esc(l.text)}`).join("\n")}</div></details>`);
   }
@@ -1103,8 +1135,7 @@ function laterScreen(step, stage) {
     case "interactive_reading/highlight": return readingScreen(full, "Highlight text in the passage to answer the question below", `<p class="q">${esc(d.highlight[0])}</p><div class="hlbox">Click and drag to highlight text</div>`);
     case "interactive_reading/idea": return readingScreen(full, "Select the idea that is expressed in the passage", pick(d.idea_options));
     case "interactive_reading/title": return readingScreen(full, "Select the best title for the passage", pick(d.title_options));
-    case "interactive_listening/respond": return `${heading("Participate in a conversation about this scenario")}<p class="lead">Listen closely! Audio clips only play once.</p>
-      <div class="chat"><div class="bubble them">${audioBubble().replace(" talking", "")}</div></div><div id="choose"><h3 class="qtitle">Select the best response</h3>${pick(d.turns.find((t) => t.options).options)}</div>`;
+    case "interactive_listening/respond": return respondScreen(step, `<div class="chat"><div class="bubble them">${audioBubble().replace(" talking", "")}</div></div><div id="choose"><h3 class="qtitle">Select the best response</h3>${pick(d.turns.find((t) => t.options).options)}</div>`);
   }
   throw new Error(`No stage ${stage} for ${step.id}`);
 }
@@ -1118,8 +1149,9 @@ async function showPreview(roundId, stepId, stage = "") {
   const screen = {
     read_select: readSelectScreen, fill_blanks: gapScreen, read_complete: gapScreen,
     listen_type: listenTypeScreen, interactive_reading: readingWordsScreen,
-    interactive_listening: listeningScreen, interactive_speaking: listenScreen,
+    interactive_listening: listeningScreen, interactive_speaking: listenScreen, listen_then_speak: listenScreen,
   }[step.type];
+  if (step.type === "interactive_listening" && !step.data.complete.length) stage ||= "respond";
   if (stage) ui.exam(laterScreen(step, stage), step.type === "interactive_reading");
   else if (screen) ui.exam(screen(step), step.type === "interactive_reading");
   else if (step.skill === "speaking") ui.exam(speakScreen(step));

@@ -52,4 +52,8 @@ TASK_TYPES: dict[str, TaskType] = {
         "Interactive Speaking", "speaking", 0, 35, "40% of Speaking (all questions)"
     ),
     "speaking_sample": TaskType("Speaking Sample", "speaking", 30, 180, "20% of Speaking"),
+    # Not in the 2026 test. The official sample booklet (2025) still has it.
+    "listen_then_speak": TaskType(
+        "Listen, Then Speak", "speaking", 20, 90, "not in the 2026 test (2025 samples)"
+    ),
 }

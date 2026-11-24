@@ -45,6 +45,7 @@ src/detcoach/
 rounds/          practice content
 rubric/          the scoring rubric for graders
 tools/           calibration of the grader against official scores
+  booklet/       make local rounds (official-*) from the official sample booklet
 attempts/        the user's answers (git ignores it)
 ```
 
@@ -52,7 +53,8 @@ attempts/        the user's answers (git ignores it)
 
 - Keep the runtime dependency free. Only the stdlib, plus optional Whisper extras.
 - Keep the app free of a build step. Plain HTML, CSS and JavaScript.
-- Prompts in `rounds/` are original. Never copy official or published test prompts.
+- Prompts in committed rounds are original. Never copy official or published test prompts.
+  The `official-*` rounds come from the official booklet. They stay local (git ignores them).
 - Photos have a free license and an attribution entry in `round.json`.
 - Treat `attempts/` as the user's private data. Do not commit it or send it anywhere.
 - Run the tests, `ruff check` and `ruff format` before you finish a code change.

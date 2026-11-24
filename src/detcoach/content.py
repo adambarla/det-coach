@@ -111,18 +111,31 @@ def check_read_complete(task: dict) -> list[str]:
     text = task.get("passage")
     if not isinstance(text, str) or not text:
         return [*problems, "needs a 'passage'"]
-    sentences = SENTENCE_END.split(text.strip())
-    if len(BLANK.findall(text)) < 5:
-        problems.append("'passage' needs at least 5 {words}")
-    if len(sentences) < 3 or BLANK.search(sentences[0]) or BLANK.search(sentences[-1]):
-        problems.append("the first and last sentences of 'passage' must have no blanks")
-    if re.search(r"\}\s*\{", text):
-        problems.append("two {words} must not be next to each other")
+    # The official samples keep the start (5 words or more) and the last sentence whole.
+    # They can put two blanks next to each other.
+    blanks = list(BLANK.finditer(text))
+    if len(blanks) < 5:
+        return [*problems, "'passage' needs at least 5 {words}"]
+    last = re.split(r"(?<=[.!?])[\"”’]?\s+", text.strip())[-1]
+    if len(text[: blanks[0].start()].split()) < 5 or BLANK.search(last):
+        problems.append(
+            "'passage' must start with 5 words and end with a sentence that have no blanks"
+        )
     return problems
 
 
+def _sentence(item) -> str:
+    """A Listen and Type sentence: text, or {"text": ..., "audio": ...} with a recording."""
+    return item.get("text", "") if isinstance(item, dict) else item
+
+
 def check_listen_type(task: dict) -> list[str]:
-    return [] if _strings(task, "sentences") else ["needs 'sentences', a list of strings"]
+    items = task.get("sentences")
+    if not isinstance(items, list) or not items:
+        return ["needs 'sentences', a list of strings"]
+    if not all(isinstance(_sentence(x), str) and _sentence(x) for x in items):
+        return ['each sentence must be text or {"text": ..., "audio": file}']
+    return []
 
 
 def check_interactive_reading(task: dict) -> list[str]:
@@ -156,8 +169,9 @@ def check_interactive_listening(task: dict) -> list[str]:
         p.append("'partner' must be professor, student or student2")
     if not isinstance(task.get("scenario"), str) or not task.get("scenario"):
         p.append("needs a 'scenario'")
-    complete = task.get("complete")
-    if not isinstance(complete, list) or not 3 <= len(complete) <= 4:
+    complete = task.get("complete", [])
+    # The 2025 samples have no Listen and Complete part, so 'complete' may be left out.
+    if not isinstance(complete, list) or not (len(complete) == 0 or 3 <= len(complete) <= 4):
         p.append("'complete' needs 3 or 4 sentences")
     elif not all(
         isinstance(c, dict) and c.get("sentence", "").count("___") == 1 and c.get("answer")
@@ -240,8 +254,10 @@ def expand_listen_type(task: dict, spec: TaskType, base: dict) -> list[Step]:
             prep=0,
             answer=spec.answer,
             part=f"Sentence {n} of {len(sentences)}",
-            listen=[Line(NARRATOR, s)],
-            key={"text": s},
+            listen=[
+                Line(NARRATOR, _sentence(s), s.get("audio", "") if isinstance(s, dict) else "")
+            ],
+            key={"text": _sentence(s)},
             **base,
         )
         for n, s in enumerate(sentences, 1)
@@ -284,21 +300,22 @@ def expand_interactive_listening(task: dict, spec: TaskType, base: dict) -> list
             turns.append({"options": _options(turn["you"], f"{tid}-turn-{n}")})
             answers.append(turn["you"]["answer"])
             lines.append(Line("you", turn["you"]["answer"]))
-    complete = [c["sentence"].split("___") for c in task["complete"]]
+    items = task.get("complete", [])
+    complete = [c["sentence"].split("___") for c in items]
     main = Step(
         id=tid,
         prep=0,
         answer=spec.answer,
-        part="Listen and Complete, Listen and Respond",
+        part="Listen and Complete, Listen and Respond" if items else "Listen and Respond",
         listen=listen,
         data={
             "complete": complete,
             # The official screen asks a question above each sentence. Optional in a round.
-            "questions": [c.get("question", "") for c in task["complete"]],
+            "questions": [c.get("question", "") for c in items],
             "turns": turns,
             "partner": partner,
         },
-        key={"complete": [c["answer"] for c in task["complete"]], "turns": answers},
+        key={"complete": [c["answer"] for c in items], "turns": answers},
         **base,
     )
     summary = Step(

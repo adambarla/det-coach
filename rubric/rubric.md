@@ -152,6 +152,8 @@ These notes come from the task descriptions in the official guides.
   examples, in paragraphs. Schools can read this answer.
 - **Speak About the Photo**, **Read, Then Speak** (up to 90 s). Use most of the time.
   Cover every bullet of the prompt.
+- **Listen, Then Speak** (up to 90 s, from the 2025 samples). The same as Read, Then
+  Speak, but the question was heard, not read. Answer every part of it.
 - **Interactive Speaking** (35 s each). Answer the question directly, then give a
   reason or an example.
 - **Speaking Sample** (up to 3 min). An organized answer to every part of the

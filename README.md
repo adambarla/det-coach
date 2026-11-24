@@ -129,6 +129,25 @@ Each folder in [`rounds/`](rounds) is a round. To make a new round, ask your age
 
 Or write one yourself with [docs/authoring-rounds.md](docs/authoring-rounds.md).
 
+## Official sample questions
+
+Duolingo publishes a booklet of official sample questions with audio
+([PDF](https://englishtest-static.duolingo.com/media/resources/GPN%20DET%20Sample%20Questions%20-%20Full.pdf)).
+Two scripts make 20 practice tests from it, `official-01` to `official-20`. Each test
+has easy and hard questions, and together the tests use each question one time.
+
+```bash
+curl -o .cache/booklet.pdf "https://englishtest-static.duolingo.com/media/resources/GPN%20DET%20Sample%20Questions%20-%20Full.pdf"
+uv run --with pymupdf --with zxing-cpp --with pillow python tools/booklet/extract.py .cache/booklet.pdf .cache/booklet
+python3 tools/booklet/make_rounds.py .cache/booklet
+uv run det-coach practice --round official-01
+```
+
+The extractor reads the QR codes in the booklet and downloads the recordings for
+Listen and Type and Listen, Then Speak. The booklet has no recordings for Interactive
+Listening, so the app speaks those conversations. The booklet content belongs to
+Duolingo, so `.gitignore` keeps these rounds out of the repository. Do not share them.
+
 ## Development
 
 ```bash

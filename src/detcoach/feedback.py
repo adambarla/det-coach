@@ -48,6 +48,8 @@ def _prompt_block(step: Step, rnd: Round) -> list[str]:
     if step.listen and step.skill in GRADED:
         if step.type == "interactive_speaking":
             lines += [f"Question (heard once, not shown): {step.listen[0].text}"]
+        elif step.type == "listen_then_speak":
+            lines += [f"Question (heard up to 3 times, not shown): {step.listen[0].text}"]
         else:
             heard = "earlier, in Listen and Respond" if step.after else "once, not shown"
             lines += [f"Conversation (heard {heard}):"]

@@ -20,6 +20,7 @@ SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 FILE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")  # also what the server accepts
 VOICES = ("interviewer", "professor", "student", "student2")
 PHOTO_FIELDS = ("title", "author", "license", "source")
+OFFICIAL = "official-"  # rounds built from the official sample booklet, never committed
 
 
 class RoundError(ValueError):
@@ -127,6 +128,15 @@ def _check(data: dict, path: Path) -> list[str]:
                             f"{where}: each line needs 'speaker' in {VOICES} and 'text'"
                         )
                         break
+        if ttype == "listen_then_speak":
+            _require(task, "text", str, problems, where)
+        for audio in _audio_files(task):
+            if not FILE_NAME.match(audio):
+                problems.append(
+                    f"{where}: audio name '{audio}' may use only letters, digits, . _ -"
+                )
+            elif not (path / "audio" / audio).is_file():
+                problems.append(f"{where}: audio file audio/{audio} is missing")
         if ttype in content.CHECKS:
             problems += [f"{where}: {x}" for x in content.CHECKS[ttype](task)]
         if ttype == "interactive_speaking":
@@ -136,6 +146,12 @@ def _check(data: dict, path: Path) -> list[str]:
             elif any(not t.get("questions") for t in topics):
                 problems.append(f"{where}: every topic needs 'questions'")
     return problems
+
+
+def _audio_files(task: dict) -> list[str]:
+    """The recorded audio files that a task names."""
+    items = [task, *(x for x in task.get("sentences", []) if isinstance(x, dict))]
+    return [x["audio"] for x in items if isinstance(x.get("audio"), str) and x["audio"]]
 
 
 def _expand(task: dict, photo_url: str) -> list[Step]:
@@ -185,6 +201,8 @@ def _expand(task: dict, photo_url: str) -> list[Step]:
         step.photo = f"{photo_url}/{task['photo']}"
     if ttype == "summarize_conversation":
         step.listen = [Line(x["speaker"], x["text"]) for x in task["conversation"]]
+    if ttype == "listen_then_speak":
+        step.listen = [Line("interviewer", task["text"], task.get("audio", ""))]
     return [step]
 
 
@@ -230,7 +248,7 @@ def _fingerprints(data: dict) -> list[tuple[str, str]]:
     out = [("photo", m.get("source", "")) for m in data.get("photos", {}).values()]
     for t in data.get("tasks", []):
         out += [("word", w.get("word", "")) for w in t.get("words", [])]
-        out += [("sentence", x) for x in t.get("sentences", [])]
+        out += [("sentence", content._sentence(x)) for x in t.get("sentences", [])]
         for key in ("title", "prompt", "follow_up", "scenario", "passage", "rest"):
             if t.get(key):
                 out.append((key.replace("_", " "), t[key]))
@@ -240,10 +258,15 @@ def _fingerprints(data: dict) -> list[tuple[str, str]]:
 
 
 def repeats(rounds_dir: Path) -> list[str]:
-    """Words, sentences, prompts, passages and photos that appear in more than one round."""
+    """Words, sentences, prompts, passages and photos that appear in more than one round.
+
+    Rounds made from the official sample booklet (official-*) are skipped: the booklet
+    repeats some of its own prompts, and those rounds stay on this computer."""
     seen: dict[tuple[str, str], str] = {}
     problems = []
     for p in sorted(Path(rounds_dir).iterdir()):
+        if p.name.startswith(OFFICIAL):
+            continue
         try:
             data = json.loads((p / "round.json").read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):

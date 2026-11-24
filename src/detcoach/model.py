@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 class Line:
     voice: str
     text: str
+    audio: str = ""  # a recorded file in the round's audio/ folder, played instead of a voice
 
 
 @dataclass

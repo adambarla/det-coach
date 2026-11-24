@@ -94,10 +94,12 @@ In `fill_blanks` and `read_complete`, put a word in braces. The app shows the fi
 half of the word and the user types the rest. To choose the split yourself, write
 `{sh|own}`: the app shows "sh" and the answer is "own".
 
-The official rules for `read_complete`, which `det-coach check` enforces:
+The rules for `read_complete`:
 
-- The first and last sentences have no blanks.
-- Two blanks are never next to each other.
+- Keep the first and last sentences free of blanks. `det-coach check` enforces the rule
+  that the official samples follow: the first 5 words and the whole last sentence have
+  no blanks. (The samples sometimes start the blanks in the first sentence, after a
+  semicolon, and sometimes put two blanks next to each other.)
 - Use at least 5 blanks. Do not use names or acronyms as blanks.
 
 ```json
