@@ -171,6 +171,11 @@ ul.plain { margin: 4px 0 12px; padding-left: 20px; }
 details.model summary { cursor: pointer; font-weight: 900; color: var(--accent); margin-top: 8px; }
 details.model div { white-space: pre-wrap; background: var(--accent-soft); border-radius: 14px; padding: 14px 18px; margin-top: 8px; color: var(--ink-strong); }
 .waiting { padding: 22px 24px; margin-top: 16px; border-style: dashed; }
+.danger { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-top: 40px; padding: 18px 20px; border: 2px solid var(--bad-soft); border-radius: 16px; }
+.danger > div { flex: 1 1 260px; min-width: 0; }
+.danger b { color: var(--ink-strong); }
+.danger p { margin: 2px 0 0; font-size: 15px; }
+.danger .btn { color: var(--bad); border-color: var(--bad-soft); box-shadow: 0 4px 0 var(--bad-soft); flex: none; }
 .thumb { display: block; max-width: 320px; width: 100%; border-radius: 14px; margin-bottom: 4px; }
 .credit { font-size: 12px; color: var(--mute); margin: 6px 0 14px; }
 .credit a { color: var(--mute); }

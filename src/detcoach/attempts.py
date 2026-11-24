@@ -12,6 +12,7 @@ attempts/<attempt-id>/
 from __future__ import annotations
 
 import json
+import shutil
 import threading
 from datetime import datetime
 from pathlib import Path
@@ -100,6 +101,11 @@ class Attempts:
             m = self.manifest(attempt_id)
             m["finished"] = m["finished"] or now()
             self._write(attempt_id, m)
+
+    def delete(self, attempt_id: str) -> None:
+        """Remove an attempt with its answers, recordings and feedback. It cannot be undone."""
+        with _lock:
+            shutil.rmtree(self.path(attempt_id))
 
     def status(self, attempt_id: str) -> str:
         """in_progress, awaiting_feedback or graded. Grading writes feedback.json."""

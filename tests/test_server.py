@@ -17,8 +17,10 @@ def base(root):
     httpd.shutdown()
 
 
-def request(url, data=None, ctype="application/json", **headers):
-    req = urllib.request.Request(url, data=data, headers={"Content-Type": ctype, **headers})
+def request(url, data=None, ctype="application/json", method=None, **headers):
+    req = urllib.request.Request(
+        url, data=data, headers={"Content-Type": ctype, **headers}, method=method
+    )
     try:
         with urllib.request.urlopen(req) as r:
             return r.status, r.read()
@@ -58,6 +60,17 @@ def test_section_attempt(base):
     assert json.loads(request(f"{base}/api/attempts/{aid}")[1])["manifest"]["section"] == "writing"
     bad = json.dumps({"round": "round-x", "section": "maths"}).encode()
     assert request(base + "/api/attempts", bad)[0] == 400
+
+
+def test_delete_attempt(base):
+    aid = json.loads(request(base + "/api/attempts", b'{"round": "round-x"}')[1])["id"]
+    url = f"{base}/api/attempts/{aid}"
+    assert request(url, method="DELETE", Origin="http://evil.example")[0] == 403
+    assert request(url)[0] == 200
+    assert request(url, method="DELETE")[0] == 200
+    assert request(url)[0] == 404
+    assert request(url, method="DELETE")[0] == 404
+    assert request(f"{base}/api/attempts/..", method="DELETE")[0] in (400, 404)
 
 
 @pytest.mark.parametrize(

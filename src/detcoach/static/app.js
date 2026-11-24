@@ -43,6 +43,11 @@ const api = {
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `${path} returned ${r.status}`);
     return r.json();
   },
+  async del(path) {
+    const r = await fetch(path, { method: "DELETE" });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `${path} returned ${r.status}`);
+    return r.json();
+  },
 };
 
 const ICON = {
@@ -1051,19 +1056,38 @@ function resultsPage(d) {
       <div class="step-h"><h3>${esc(s.name)}${s.part ? ` <span class="muted">· ${esc(s.part)}</span>` : ""}</h3>${f ? `<span class="band">${bandRange(f.band)}</span>` : ""}</div>
       ${stepContext(round, s)}${stepAnswer(d, s)}${stepFeedback(f, s)}</section>`;
   }).join("");
-  return `<section class="res-head">${head}</section>${waiting}${steps}`;
+  const remove = `<section class="danger"><div><b>Delete this attempt</b>
+    <p class="muted">Removes its answers, recordings and feedback from this computer. You cannot undo this.</p></div>
+    <button class="btn ghost small" id="delete" type="button">Delete</button></section>`;
+  return `<section class="res-head">${head}</section>${waiting}${steps}${remove}`;
+}
+
+function wireDelete(id) {
+  $("#delete").onclick = async () => {
+    if (!confirm(`Delete attempt ${id}? Its answers, recordings and feedback are removed for good.`)) return;
+    try {
+      await api.del(`/api/attempts/${id}`);
+      location.hash = "#/";
+    } catch (e) {
+      alert(`Could not delete the attempt: ${e.message}`);
+    }
+  };
 }
 
 async function showAttempt(id, token) {
   ui.reset();
   let d = await api.get(`/api/attempts/${id}`);
   ui.page(resultsPage(d));
+  wireDelete(id);
   // Wait for the grader: refresh once feedback.json appears.
   while (d.status !== "graded" && token === routeToken) {
     await sleep(4000);
     if (token !== routeToken) return;
     const next = await api.get(`/api/attempts/${id}`).catch(() => d);
-    if (next.status !== d.status) ui.page(resultsPage(next));
+    if (next.status !== d.status) {
+      ui.page(resultsPage(next));
+      wireDelete(id);
+    }
     d = next;
   }
 }

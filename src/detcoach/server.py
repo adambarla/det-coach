@@ -13,6 +13,7 @@ Routes
     POST /api/attempts                      {"round": id, "section"?: name} -> {"id": attempt id}
     POST /api/attempts/<id>/steps/<step>    body = text/plain answer or audio/* recording
     POST /api/attempts/<id>/finish
+    DELETE /api/attempts/<id>               removes the attempt folder for good
 """
 
 from __future__ import annotations
@@ -190,6 +191,20 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
                     self._file(path)
                 case _:
                     raise FileNotFoundError(self.path)
+
+        def do_DELETE(self) -> None:  # noqa: N802
+            if (parts := self._parts()) is None:
+                return
+            match parts:
+                case ["api", "attempts", aid]:
+                    try:
+                        app.attempts.delete(aid)
+                    except FileNotFoundError:
+                        return self._error(404, "not found")
+                    print(f"  deleted attempt {aid}", flush=True)
+                    self._json({"deleted": aid})
+                case _:
+                    self._error(404, "not found")
 
         def do_POST(self) -> None:  # noqa: N802
             if (parts := self._parts()) is None:

@@ -28,6 +28,7 @@ corrections of your own sentences and a stronger model answer.
   computer.
 - **Feedback in the app.** Score bands for each criterion, fixes that quote your own
   words, model answers, and your recordings with pauses marked in the transcript.
+  To remove an attempt, click Delete at the bottom of its page.
 - **Open content.** Rounds are JSON files with original prompts and freely licensed
   photos. `round-03` and `round-04` are full tests. No two rounds share a prompt, a word or
   a photo. Your agent can write new rounds for you.
